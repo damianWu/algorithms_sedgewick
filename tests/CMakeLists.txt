@@ -1,36 +1,37 @@
 # Set TARGET(binary file) name for convenience
-set(<TEST_VAR> ${PROJECT_NAME}_<TEST_NAME>)
+set(queue_multiset_stack_test ${PROJECT_NAME}_queue_multiset_stack_test)
 
 # Test files
 set(
         TEST_FILES
-        <FILE_TO_TEST>.cpp
+        queue_multiset_stack.test.cpp
 #        test_temperature_reading.cpp
 )
 
 # (Names of) Tested libraries
 set(
         TESTED_LIBRARIES
+        ch1_lib
 #        ${project_name}_ch10_homework
 #        ${project_name}_exception
 )
 
 # Executable that runs the tests.
 add_executable(
-        ${<TEST_VAR>}             # Executable tests file name
-        test_main.cpp
+        ${queue_multiset_stack_test}             # Executable tests file name
+        main.test.cpp
         ${TEST_FILES}
 )
 
 # Link the executable to needed libraries.
 target_link_libraries(
-        ${<TEST_VAR>}
+        ${queue_multiset_stack_test}
         ${TESTED_LIBRARIES}     # Library we are testing
-        gtest gtest_main        # GTest libraries
+        gtest::gtest        # GTest libraries
 )
 
 # Add gtest to be able to run ctest.
 add_test(
-        NAME CH10Test            # Test name
-        COMMAND ${<TEST_VAR>} --gtest_color=1     # Executable tests file name
+        NAME queueMultiSetStack            # Test name
+        COMMAND ${queue_multiset_stack_test} --gtest_color=1     # Executable tests file name
 )

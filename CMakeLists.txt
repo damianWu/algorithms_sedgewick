@@ -35,10 +35,9 @@ set(CPP_COMPILER_STANDARD "-std=c++23")
 # Compiler flags
 # ----------------------
 set(SANITIZER "-fsanitize=undefined,address")
-# Rejected: -Wmissing-prototypes 
+set(EXCLUDED "-Wno-unused-function -Wno-sign-compare -Wno-sign-conversion")
 # set(ERROR_LIMIT "-ferror-limit=0")
-# set(USER_INCLUDE_PATH "-I/usr/lib/llvm-18/lib/clang/18/include")
-# set(EXTRA_COMPILER_FLAGS "-Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-unused-function ${ERROR_LIMIT} ${USER_INCLUDE_PATH}")
+set(EXTRA_COMPILER_FLAGS "-Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual ${EXCLUDED} ${ERROR_LIMIT}")
 
 # Generate 'compile_commands.json' file required for 'clangd' and familiar tools.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -67,6 +66,7 @@ include(${CMAKE_BINARY_DIR}/conan_toolchain.cmake)
 # ----------------------
 # find_package(ASIO REQUIRED)
 find_package(FMT REQUIRED)
+find_package(GTest REQUIRED)
 
 
 # Set output directory
@@ -78,15 +78,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 # Tests
 # ----------------------
 # Must be defined in top-most CMakeLists.txt file.
-# enable_testing()
+enable_testing()
 
 
 
 # ----------------------
 # Subdirectories
 # ----------------------
-# add_subdirectory(tests)
-# add_subdirectory(src/example)
+add_subdirectory(tests)
 add_subdirectory(src/ch1)
 
 

@@ -8,7 +8,6 @@ int main()
 {
    try
    {
-      fmt::print("I'd rather be {1} than {0}.\n", "right", "happy");
    }
    catch (const std::exception &e)
    {
