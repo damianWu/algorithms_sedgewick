@@ -114,6 +114,7 @@ class Stack
 namespace linked_list_stack
 {
 
+// Queue of type LIFO
 template <typename Item>
 class Stack
 {
@@ -181,12 +182,12 @@ Item Stack<Item>::pop()
    --m_size;
 
    const auto* const oldFirst{m_first};
-   Item deletedItem{oldFirst->item};
+   Item oldItem{oldFirst->item};
 
    m_first = oldFirst->next;
    delete oldFirst;
 
-   return deletedItem;
+   return oldItem;
 }
 
 template <typename Item>
