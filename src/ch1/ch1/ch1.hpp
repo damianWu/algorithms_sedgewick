@@ -9,7 +9,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <iterator>
 #include <memory>
+#include <new>
 #include <type_traits>
 #include <utility>
 
@@ -83,7 +85,7 @@ class Stack
    [[nodiscard]] std::reverse_iterator<iterator> rbegin();
    [[nodiscard]] std::reverse_iterator<iterator> rend();
    [[nodiscard]] const Item* cbegin() const;
-   [[nodiscard]] const iterator cend() const;
+   [[nodiscard]]  iterator cend() const;
 
    // TODO(damianWu) - to delete
    void dump()
@@ -111,15 +113,118 @@ class Stack
 };
 }  // namespace efficient_stack
 
-// Part of LinkedList (list) class
-template <typename Item>
-struct Node
+namespace linked_list_stack
 {
-   Item item;
-   Node next;
+
+template <typename Item>
+class Stack
+{
+   struct Node
+   {
+      Item item{};
+      Node* next{};
+   };
+
+   using iterator = Node*;
+   using reference = Node&;
+
+ public:
+   Stack() = default;
+   Stack(const Stack&) = delete;
+   Stack(Stack&&) = delete;
+   Stack& operator=(Stack&) = delete;
+   Stack& operator=(Stack&&) = delete;
+   ~Stack();
+
+   [[nodiscard]] bool isEmpty() const;
+   [[nodiscard]] std::size_t size() const;
+
+   void push(Item&&);
+   void push(const Item&);
+   // TODO(damianWu) - to implement
+   void clear();
+
+   // TODO(damianWu) - to implement
+   iterator begin() const;
+   iterator end() const;
+
+   [[nodiscard]] Item pop();
+
+ private:
+   iterator m_first{};
+   std::size_t m_size{};
 };
+}  // namespace linked_list_stack
 
 /* Implementation */
+namespace linked_list_stack
+{
+
+template <typename Item>
+Stack<Item>::~Stack()
+{
+   clear();
+}
+
+template <typename Item>
+void Stack<Item>::clear()
+{
+   while (!isEmpty())
+   {
+      (void)pop();
+   }
+}
+
+template <typename Item>
+Item Stack<Item>::pop()
+{
+   if (isEmpty())
+   {
+      return nullptr;
+   }
+   --m_size;
+
+   auto* const oldFirst{m_first};
+   Item deletedItem{oldFirst->item};
+
+   m_first = oldFirst->next;
+   delete oldFirst;
+
+   return deletedItem;
+}
+
+template <typename Item>
+void Stack<Item>::push(Item&& item)
+{
+   auto* oldFirst{m_first};
+   m_first = new Node{std::move(item)};
+   m_first->next = oldFirst;
+
+   ++m_size;
+}
+
+template <typename Item>
+void Stack<Item>::push(const Item& item)
+{
+   auto* oldFirst{m_first};
+   m_first = new Node{std::move(item)};
+   m_first->next = oldFirst;
+
+   ++m_size;
+}
+
+template <typename Item>
+[[nodiscard]] inline bool Stack<Item>::isEmpty() const
+{
+   return m_size == 0;
+}
+template <typename Item>
+[[nodiscard]] inline std::size_t Stack<Item>::size() const
+{
+   return m_size;
+}
+}  // namespace linked_list_stack
+
 namespace efficient_stack
 {
 template <typename Item>
@@ -134,11 +239,13 @@ Stack<Item>::Stack(size_t capacity)
       m_onePastLast{m_first + capacity},
       m_firstFree{m_first}
 {
+   std::cout << "explicit Stack(size_t capacity = 0)" << '\n';
 }
 
 template <typename Item>
 Stack<Item>::~Stack()
 {
+   std::cout << "Stack<Item>::~Stack() called" << '\n';
    free(m_first, m_firstFree, m_onePastLast - m_first);
 }
 
@@ -249,7 +356,7 @@ inline typename Stack<Item>::iterator Stack<Item>::end() const
 
 // TODO(damianWu) - how to improve this?
 template <typename Item>
-const typename Stack<Item>::iterator Stack<Item>::cend() const
+typename Stack<Item>::iterator Stack<Item>::cend() const
 {
    return const_cast<iterator>(m_firstFree);  // TODO(damianWu) - It is incorrect.
 }

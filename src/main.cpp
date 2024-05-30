@@ -2,12 +2,18 @@
 #include <fmt/core.h>
 
 #include <iostream>
-#include <memory>
+
+#include "ch1/ch1.hpp"
 
 int main()
 {
    try
    {
+   std::vector<int> v{5634,12};
+   std::cout << v.size() << '\n';
+   std::ranges::for_each(v,[](auto e){
+      std::cout << e << '\n';
+   });
    }
    catch (const std::exception &e)
    {

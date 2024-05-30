@@ -7,7 +7,7 @@ project(algorithms_sedgewick)
 # ----------------------
 # Debugging
 # ----------------------
-set(DEBUG_MODE FALSE)
+set(DEBUG_MODE TRUE)
 
 
 
