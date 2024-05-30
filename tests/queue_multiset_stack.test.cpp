@@ -10,7 +10,6 @@
 
 namespace ch1
 {
-
 namespace efficient_stack
 {
 using CapacityType = std::size_t;
@@ -37,35 +36,6 @@ INSTANTIATE_TEST_SUITE_P(NewStackElementsTest, AddNewElementsToStackTest,
                          testing::Values(std::make_tuple(2, 2, std::vector<ElementType>{99, 980}),
                                          std::make_tuple(0, 4,
                                                          std::vector<ElementType>{99, 980, 980, 980})));
-
-// TEST(AddNewElementsToStackTest, shouldAddNewElementsToStack)
-// {
-//    const auto t{std::make_tuple<CapacityType, SizeType, std::vector<ElementType>>(2, 2, {99, 980})};
-//    const auto capacity{std::get<0>(t)};
-//    const auto expectedSize{std::get<1>(t)};
-//    const std::vector<ElementType> elements{std::get<2>(t)};
-
-//    Stack<int32_t> stack{capacity};
-
-//    std::ranges::for_each(elements, [&stack](auto e) { stack.push(e); });
-
-//    ASSERT_EQ(expectedSize, stack.size());
-// }
-
-// TEST(AddNewElementsToStackTest, shouldAddNewElementsToStack2)
-// {
-//    // const auto& [capacity, expectedSize, elements]{GetParam()};
-
-//    const auto capacity{0};
-//    const auto expectedSize{4};
-//    const std::vector<ElementType> elements{99, 980, 980, 980};
-
-//    Stack<int32_t> stack{capacity};
-
-//    std::ranges::for_each(elements, [&stack](auto e) { stack.push(e); });
-
-//    ASSERT_EQ(expectedSize, stack.size());
-// }
 
 TEST(StackTest, shouldSizeBeCalculatedCorrectly)
 {

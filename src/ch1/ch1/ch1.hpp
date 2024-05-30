@@ -180,7 +180,7 @@ Item Stack<Item>::pop()
 {
    if (isEmpty())
    {
-      return nullptr;
+      return Item();
    }
    --m_size;
 

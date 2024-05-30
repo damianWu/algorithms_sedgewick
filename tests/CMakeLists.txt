@@ -5,15 +5,12 @@ set(queue_multiset_stack_test ${PROJECT_NAME}_queue_multiset_stack_test)
 set(
         TEST_FILES
         queue_multiset_stack.test.cpp
-#        test_temperature_reading.cpp
 )
 
 # (Names of) Tested libraries
 set(
         TESTED_LIBRARIES
         ch1_lib
-#        ${project_name}_ch10_homework
-#        ${project_name}_exception
 )
 
 # Executable that runs the tests.
@@ -27,6 +24,7 @@ add_executable(
 target_link_libraries(
         ${queue_multiset_stack_test}
         ${TESTED_LIBRARIES}     # Library we are testing
+        GTest::gtest_main
         gtest::gtest        # GTest libraries
 )
 
@@ -35,3 +33,6 @@ add_test(
         NAME queueMultiSetStack            # Test name
         COMMAND ${queue_multiset_stack_test} --gtest_color=1     # Executable tests file name
 )
+
+# include(GoogleTest)
+# gtest_discover_tests(${queue_multiset_stack_test})
