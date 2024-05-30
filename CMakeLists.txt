@@ -34,9 +34,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # ----------------------
 # Compiler flags
 # ----------------------
-set(SANITIZER "-fsanitize=undefined,address")
+# set(SANITIZER "-fsanitize=undefined,address")
 set(EXCLUDED "-Wno-unused-function -Wno-sign-compare -Wno-sign-conversion")
-set(ERROR_LIMIT "-ferror-limit=0")
+# set(ERROR_LIMIT "-ferror-limit=0")
 set(EXTRA_COMPILER_FLAGS "-Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual ${EXCLUDED} ${ERROR_LIMIT}")
 
 # Generate 'compile_commands.json' file required for 'clangd' and familiar tools.

@@ -11,8 +11,6 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
-#include <new>
-#include <type_traits>
 #include <utility>
 
 namespace ch1
@@ -85,7 +83,7 @@ class Stack
    [[nodiscard]] std::reverse_iterator<iterator> rbegin();
    [[nodiscard]] std::reverse_iterator<iterator> rend();
    [[nodiscard]] const Item* cbegin() const;
-   [[nodiscard]]  iterator cend() const;
+   [[nodiscard]] iterator cend() const;
 
    // TODO(damianWu) - to delete
    void dump()
@@ -126,7 +124,6 @@ class Stack
    };
 
    using iterator = Node*;
-   using reference = Node&;
 
  public:
    Stack() = default;
@@ -139,16 +136,15 @@ class Stack
    [[nodiscard]] bool isEmpty() const;
    [[nodiscard]] std::size_t size() const;
 
+   [[nodiscard]] Item pop();
+
    void push(Item&&);
    void push(const Item&);
-   // TODO(damianWu) - to implement
    void clear();
 
    // TODO(damianWu) - to implement
    iterator begin() const;
    iterator end() const;
-
-   [[nodiscard]] Item pop();
 
  private:
    iterator m_first{};
@@ -184,7 +180,7 @@ Item Stack<Item>::pop()
    }
    --m_size;
 
-   auto* const oldFirst{m_first};
+   const auto* const oldFirst{m_first};
    Item deletedItem{oldFirst->item};
 
    m_first = oldFirst->next;
@@ -239,13 +235,11 @@ Stack<Item>::Stack(size_t capacity)
       m_onePastLast{m_first + capacity},
       m_firstFree{m_first}
 {
-   std::cout << "explicit Stack(size_t capacity = 0)" << '\n';
 }
 
 template <typename Item>
 Stack<Item>::~Stack()
 {
-   std::cout << "Stack<Item>::~Stack() called" << '\n';
    free(m_first, m_firstFree, m_onePastLast - m_first);
 }
 
@@ -286,7 +280,6 @@ template <typename Item>
 void Stack<Item>::allocate(iterator first, iterator firstFree)
 {
    const auto newCapacity{calculateNewCapacity()};
-   fmt::print("newCapacity={}\n", newCapacity);
    m_first = ms_allocatorTraits.allocate(ms_allocator, newCapacity);
    m_onePastLast = m_first + newCapacity;
    assert(newCapacity == m_onePastLast - m_first);  // TODO(damianWu) - to delete?
