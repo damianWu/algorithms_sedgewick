@@ -33,11 +33,10 @@ TEST_P(AddNewElementsToStackTest, shouldAddNewElementsToStack)
    ASSERT_EQ(expectedSize, stack.size());
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    NewStackElementsTest, AddNewElementsToStackTest,
-    testing::Values(
-        std::make_tuple(2, 2, std::vector<ElementType>{99, 980}),
-        std::make_tuple(0, 4, std::vector<ElementType>{99, 980, 980, 980})));
+INSTANTIATE_TEST_SUITE_P(NewStackElementsTest, AddNewElementsToStackTest,
+                         testing::Values(std::make_tuple(2, 2, std::vector<ElementType>{99, 980}),
+                                         std::make_tuple(0, 4,
+                                                         std::vector<ElementType>{99, 980, 980, 980})));
 
 // TEST(AddNewElementsToStackTest, shouldAddNewElementsToStack)
 // {
@@ -225,20 +224,23 @@ TEST_F(LinkedListStackTest, pushItemToStack2)
    ASSERT_FALSE(stack.isEmpty());
 }
 
+TEST_F(LinkedListStackTest, popItemFromStack)
+{
+   constexpr std::size_t expectedSize{0};
+   const std::string expectedPopResult{"push_test1"};
 
-// TEST_F(LinkedListStackTest, DISABLED_popItemFromStack)
-// {
-//    constexpr std::size_t expectedSize{0};
+   stack.push(expectedPopResult);
 
-//    stack.push(std::string{"push_test1"});
+   ASSERT_EQ(1, stack.size());
 
-//    stack.pop();
-//    stack.pop();
-//    stack.pop();
+   const auto popResult{stack.pop()};
+   (void)stack.pop();
+   (void)stack.pop();
 
-//    ASSERT_EQ(expectedSize, stack.size());
-//    ASSERT_TRUE(stack.isEmpty());
-// }
+   ASSERT_EQ(expectedPopResult, popResult);
+   ASSERT_EQ(expectedSize, stack.size());
+   ASSERT_TRUE(stack.isEmpty());
+}
 }  // namespace linked_list_stack
 
 }  // namespace ch1
