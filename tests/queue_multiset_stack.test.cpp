@@ -115,6 +115,27 @@ TEST(QueueTest, clearShouldRemoveAllElements)
   ASSERT_EQ(expectedFinalSize, queue.size());
   ASSERT_TRUE(queue.isEmpty());
 }
+
+TEST(QueueTest, iterateThroughList)
+{
+  std::vector<std::string> items{"item1", "item2", "item3", "item4", "item5"};
+
+  Queue<std::string> queue;
+  for (const auto& s : items)
+  {
+    queue.enqueue(s);
+  }
+
+  std::size_t i{};
+  for (const auto& e : queue)
+  {
+    if (e.item != items.at(i))
+    {
+      FAIL() << "Every corresponding element should be equal.";
+    }
+    ++i;
+  }
+}
 }  // namespace queue
 
 namespace efficient_stack
@@ -352,6 +373,27 @@ TEST_F(LinkedListStackTest, popItemsFromStack)
   ASSERT_EQ(expectedPopResult4, popResult4);
   ASSERT_EQ(expectedFinalSize, stack.size());
   ASSERT_TRUE(stack.isEmpty());
+}
+
+TEST_F(LinkedListStackTest, iterateThroughStack)
+{
+  std::vector<std::string> items{"item1", "item2", "item3", "item4", "item5"};
+
+  Stack<std::string> stack;
+  for (const auto& s : items)
+  {
+    stack.push(s);
+  }
+
+  std::size_t i{items.size() - 1};
+  for (const auto& e : stack)
+  {
+    if (e.item != items.at(i))
+    {
+      FAIL() << "Every corresponding element should be equal.";
+    }
+    --i;
+  }
 }
 }  // namespace linked_list_stack
 

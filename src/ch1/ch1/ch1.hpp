@@ -7,7 +7,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
-#include <iterator>
 #include <memory>
 #include <utility>
 
@@ -15,49 +14,48 @@ namespace ch1
 {
 using size_t = std::size_t;
 
-template <typename Item>
-class MultiSet
+namespace it
 {
-  // TODO(damianWu). Does access specifier have impact here? Yes it does.
-  using iterator = Item*;
-
-public:
-  MultiSet() = default;
-
-  void add(Item item);
-  [[nodiscard]] bool isEmpty() const;
-  [[nodiscard]] std::size_t size() const;
-
-  iterator begin() const;
-  iterator cbegin() const;
-  iterator end() const;
-  iterator cend() const;
+template <typename Item>
+struct Node
+{
+  Item item{};
+  Node* next{};
 };
 
-// template <typename Item>
-// void MultiSet<Item>::add(Item item)
-// {
-// }
+template <typename Item>
+struct Iterator
+{
+  using pointer = Node<Item>*;
+  using reference = Node<Item>&;
 
-// template <typename Item>
-// [[nodiscard]] bool MultiSet<Item>::isEmpty() const;
+  explicit Iterator(pointer ptr) : m_ptr(ptr) {}
 
-// template <typename Item>
-// [[nodiscard]] std::size_t MultiSet<Item>::size() const;
+  reference operator*() const { return *m_ptr; }
+  pointer operator->() { return m_ptr; }
 
-// template <typename Item>
-// typename MultiSet<Item>::iterator MultiSet<Item>::begin() const
-// {
-// }
+  // Prefix increment
+  Iterator& operator++()
+  {
+    m_ptr = m_ptr->next;
+    return *this;
+  }
 
-// template <typename Item>
-// MultiSet::iterator MultiSet<Item>::cbegin() const;
+  // Postfix increment
+  Iterator operator++(int)
+  {
+    Iterator tmp{m_ptr->next};
+    ++(*this);
+    return tmp;
+  }
 
-// template <typename Item>
-// MultiSet::iterator MultiSet<Item>::end() const;
+  friend bool operator==(const Iterator& a, const Iterator& b) { return a.m_ptr == b.m_ptr; }
+  friend bool operator!=(const Iterator& a, const Iterator& b) { return a.m_ptr != b.m_ptr; }
 
-// template <typename Item>
-// MultiSet::iterator MultiSet<Item>::cend() const;
+private:
+  pointer m_ptr;
+};
+}  // namespace it
 
 namespace queue
 {
@@ -65,14 +63,6 @@ namespace queue
 template <typename Item>
 class Queue
 {
-  struct Node
-  {
-    Item item{};
-    Node* next{};
-  };
-
-  using iterator = Node*;
-
 public:
   Queue() = default;
   Queue(const Queue&) = delete;
@@ -87,14 +77,13 @@ public:
 
   [[nodiscard]] bool isEmpty() const;
   [[nodiscard]] std::size_t size() const;
-  [[nodiscard]] iterator begin() const;   // TODO(@damianWu) NOT IMPLEMENTED
-  [[nodiscard]] iterator cbegin() const;  // TODO(@damianWu) NOT IMPLEMENTED
-  [[nodiscard]] iterator end() const;     // TODO(@damianWu) NOT IMPLEMENTED
-  [[nodiscard]] iterator cend() const;    // TODO(@damianWu) NOT IMPLEMENTED
+
+  it::Iterator<Item> begin() { return it::Iterator<Item>(m_first); }
+  it::Iterator<Item> end() { return it::Iterator<Item>(nullptr); }
 
 private:
-  iterator m_first{};
-  iterator m_last{};
+  it::Node<Item>* m_first{};
+  it::Node<Item>* m_last{};
 
   std::size_t m_size{};
 };
@@ -107,7 +96,7 @@ void Queue<Item>::clear()
     return;
   }
 
-  for (Node* next{}; m_first->next != nullptr;)
+  for (it::Node<Item>* next{}; m_first->next != nullptr;)
   {
     next = m_first->next;
     delete m_first;
@@ -146,8 +135,8 @@ Item Queue<Item>::dequeue()
 template <typename Item>
 void Queue<Item>::enqueue(Item item)
 {
-  auto* const oldLast{m_last};
-  m_last = new Node{std::move(item)};
+  auto oldLast{m_last};
+  m_last = new it::Node<Item>{std::move(item)};
 
   ++m_size;
 
@@ -379,14 +368,6 @@ namespace linked_list_stack
 template <typename Item>
 class Stack
 {
-  struct Node
-  {
-    Item item{};
-    Node* next{};
-  };
-
-  using iterator = Node*;
-
 public:
   Stack() = default;
   Stack(const Stack&) = delete;
@@ -403,12 +384,11 @@ public:
   void push(Item);
   void clear();
 
-  // TODO(damianWu) - to implement
-  iterator begin() const;
-  iterator end() const;
+  it::Iterator<Item> begin() const { return it::Iterator<Item>{m_first}; }
+  it::Iterator<Item> end() const { return it::Iterator<Item>{nullptr}; }
 
 private:
-  iterator m_first{};
+  it::Node<Item>* m_first{};
   std::size_t m_size{};
 };
 
@@ -449,7 +429,7 @@ template <typename Item>
 void Stack<Item>::push(Item item)
 {
   auto* oldFirst{m_first};
-  m_first = new Node{std::move(item), oldFirst};
+  m_first = new it::Node<Item>{std::move(item), oldFirst};
 
   ++m_size;
 }
