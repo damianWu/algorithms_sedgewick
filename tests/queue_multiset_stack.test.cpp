@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <iterator>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "ch1/ch1.hpp"
@@ -268,6 +269,21 @@ TEST(StackTest, stackShouldDoNothingWhenPopIfStackIsEmpty2)
 
   ASSERT_EQ(expectedSize, stack.size());
 }
+TEST(StackTest, shouldReturnValueWithoutModifyingStack)
+{
+  constexpr std::string_view expectedItem{"item4"};
+  constexpr auto expectedSize{4};
+
+  Stack<std::string> stack;
+  stack.push("item1");
+  stack.push("item2");
+  stack.push("item3");
+  stack.push("item4");
+
+  ASSERT_EQ(expectedItem, stack.peek());
+  ASSERT_EQ(expectedSize, stack.size());
+}
+
 }  // namespace efficient_stack
 
 namespace linked_list_stack
@@ -396,5 +412,27 @@ TEST_F(LinkedListStackTest, iterateThroughStack)
   }
 }
 }  // namespace linked_list_stack
+
+namespace homework
+{
+
+class Ex1_3_5Test : public ::testing::TestWithParam<std::pair<std::string, bool>>
+{
+};
+
+TEST_P(Ex1_3_5Test, parenthesisTest)
+{
+  const auto& [input, expectedResult]{GetParam()};
+  const auto result{::homework::ex1_3_5(input)};
+  ASSERT_EQ(expectedResult, result);
+}
+
+INSTANTIATE_TEST_SUITE_P(DISABLED_Ex1_3_5Test, Ex1_3_5Test,
+                         testing::Values(std::make_pair("[()]{}{[()()]()}", true),
+                                         std::make_pair("[(])", false), std::make_pair("[(", false),
+                                         std::make_pair("", true), std::make_pair("[[]]", true),
+                                         std::make_pair("[([])]{}{", false),
+                                         std::make_pair("asddas", false)));
+}  // namespace homework
 
 }  // namespace ch1

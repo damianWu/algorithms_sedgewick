@@ -3,11 +3,13 @@
 #define SRC_CH1_CH1_CH1_HPP_
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <memory>
+#include <string>
 #include <utility>
 
 namespace ch1
@@ -180,6 +182,7 @@ public:
   void push(Item item);
   Item pop();
 
+  [[nodiscard]] Item peek() const;
   [[nodiscard]] bool isEmpty() const;
   [[nodiscard]] std::ptrdiff_t size() const;
 
@@ -245,6 +248,15 @@ template <typename Item>
 [[nodiscard]] inline std::ptrdiff_t Stack<Item>::capacity() const
 {
   return m_onePastLast - m_first;
+}
+template <typename Item>
+Item Stack<Item>::peek() const
+{
+  if(isEmpty())
+  {
+    return {};
+  }
+  return *(m_firstFree - 1);
 }
 
 template <typename Item>
@@ -447,5 +459,39 @@ template <typename Item>
 }  // namespace linked_list_stack
 
 }  // namespace ch1
+
+namespace homework
+{
+bool ex1_3_5(const std::string input)
+{
+  ch1::efficient_stack::Stack<char> opening_parenthesis;
+
+  const std::string open{"[({"};
+  const std::string close{"])}"};
+
+  for (const auto c : input)
+  {
+    if (open.contains(c))
+    {
+      opening_parenthesis.push(c);
+    }
+    else if (close.contains(c))
+    {
+      // c is closing bracket
+      // o is opening bracket
+      const auto o{opening_parenthesis.pop()};
+      if (open.find(o) != close.find(c))
+      {
+        return false;
+      }
+    }
+    else
+    {
+      return false;
+    }
+  }
+  return opening_parenthesis.isEmpty();
+}
+}  // namespace homework
 
 #endif  // SRC_CH1_CH1_CH1_HPP_
