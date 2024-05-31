@@ -462,7 +462,7 @@ template <typename Item>
 
 namespace homework
 {
-bool ex1_3_5(const std::string input)
+bool ex1_3_5(const std::string& input)
 {
   ch1::efficient_stack::Stack<char> opening_parenthesis;
 

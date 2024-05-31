@@ -395,7 +395,6 @@ TEST_F(LinkedListStackTest, iterateThroughStack)
 {
   std::vector<std::string> items{"item1", "item2", "item3", "item4", "item5"};
 
-  Stack<std::string> stack;
   for (const auto& s : items)
   {
     stack.push(s);

@@ -29,8 +29,6 @@ set(CPP_COMPILER_STANDARD "-std=c++23")
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-
-
 # ----------------------
 # Compiler flags
 # ----------------------
@@ -43,9 +41,14 @@ set(EXTRA_COMPILER_FLAGS "-Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(${DEBUG_MODE})
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CPP_COMPILER_STANDARD} ${EXTRA_COMPILER_FLAGS} ${COMPILATION_DATABASE} ${SANITIZER}")
-	message(WARNING "Project is now in debug mode!")
+  if(${CMAKE_SYSTEM_NAME} STREQUAL Windows)
+    set(USER_DEBUG_FLAGS "-gdwarf-4")
+  else()
+    set(USER_DEBUG_FLAGS "-O0")
+  endif()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CPP_COMPILER_STANDARD} ${EXTRA_COMPILER_FLAGS} ${COMPILATION_DATABASE} ${SANITIZER}")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g ${USER_DEBUG_FLAGS}")
+  message(WARNING "Project is now in debug mode!")
 else()
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CPP_COMPILER_STANDARD} ${EXTRA_COMPILER_FLAGS} ${COMPILATION_DATABASE} ${SANITIZER}")
@@ -94,11 +97,11 @@ add_subdirectory(src/ch1)
 # ----------------------
 # Create executable target
 # ----------------------
-add_executable(${PROJECT_NAME}  src/main.cpp)
+# add_executable(${PROJECT_NAME}  src/main.cpp)
 
 
 
 # ----------------------
 # Link libraries target with executable target
 # ----------------------
-target_link_libraries(${PROJECT_NAME} fmt::fmt ch1_lib)
+# target_link_libraries(${PROJECT_NAME} fmt::fmt ch1_lib)
