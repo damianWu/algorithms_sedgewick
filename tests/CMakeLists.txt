@@ -28,10 +28,12 @@ target_link_libraries(
         gtest::gtest        # GTest libraries
 )
 
+# set(gtest_filter "--gtest_filter=*clearShouldRemoveAllElements*")
+
 # Add gtest to be able to run ctest.
 add_test(
         NAME queueMultiSetStack            # Test name
-        COMMAND ${queue_multiset_stack_test} --gtest_color=1     # Executable tests file name
+        COMMAND ${queue_multiset_stack_test} --gtest_color=1 ${gtest_filter}   # Executable tests file name
 )
 
 # include(GoogleTest)

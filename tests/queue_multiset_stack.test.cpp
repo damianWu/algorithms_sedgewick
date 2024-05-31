@@ -1,3 +1,5 @@
+// Copyright [2024] <@damianWu>
+
 #include <gtest/gtest.h>
 
 #include <cstddef>
@@ -10,6 +12,111 @@
 
 namespace ch1
 {
+namespace queue
+{
+TEST(QueueTest, addNewElementToQueue)
+{
+  constexpr auto expectedSize{1};
+  Queue<std::string> queue;
+  std::string item{"First item"};
+
+  queue.enqueue(item);
+
+  ASSERT_EQ(expectedSize, queue.size());
+  ASSERT_FALSE(queue.isEmpty());
+}
+
+TEST(QueueTest, addNewElementsToQueue)
+{
+  constexpr auto expectedSize{4};
+  Queue<std::string> queue;
+  std::string item1{"First item"};
+  std::string item2{"2 item"};
+  std::string item3{"3 item"};
+  std::string item4{"4 item"};
+
+  queue.enqueue(item1);
+  queue.enqueue(item2);
+  queue.enqueue(item3);
+  queue.enqueue(item4);
+
+  ASSERT_EQ(expectedSize, queue.size());
+  ASSERT_FALSE(queue.isEmpty());
+}
+
+TEST(QueueTest, removeElementFromQueue)
+{
+  constexpr auto expectedSize{0};
+  constexpr auto expectedSizeAfterPush{1};
+  Queue<std::string> queue;
+  std::string expectedItem{"First item"};
+
+  queue.enqueue(expectedItem);
+
+  ASSERT_EQ(expectedSizeAfterPush, queue.size());
+
+  const std::string item{queue.dequeue()};
+  const std::string emptyItem{queue.dequeue()};
+  queue.dequeue();
+  queue.dequeue();
+
+  ASSERT_EQ("", emptyItem);
+  ASSERT_EQ(expectedItem, item);
+  ASSERT_EQ(expectedSize, queue.size());
+  ASSERT_TRUE(queue.isEmpty());
+}
+
+TEST(QueueTest, removeElementsFromQueue)
+{
+  constexpr auto expectedFinalSize{0};
+  constexpr auto expectedSizeAfterPush{4};
+  Queue<std::string> queue;
+  std::string item1{"First item"};
+  std::string item2{"2nd item"};
+  std::string item3{"3rd item"};
+  std::string item4{"4th item"};
+
+  queue.enqueue(item1);
+  queue.enqueue(item2);
+  queue.enqueue(item3);
+  queue.enqueue(item4);
+
+  ASSERT_EQ(expectedSizeAfterPush, queue.size());
+
+  const std::string returnedItem1{queue.dequeue()};
+  const std::string returnedItem2{queue.dequeue()};
+  const std::string returnedItem3{queue.dequeue()};
+  const std::string returnedItem4{queue.dequeue()};
+
+  ASSERT_EQ(item1, returnedItem1);
+  ASSERT_EQ(item2, returnedItem2);
+  ASSERT_EQ(item3, returnedItem3);
+  ASSERT_EQ(item4, returnedItem4);
+  ASSERT_EQ(expectedFinalSize, queue.size());
+  ASSERT_TRUE(queue.isEmpty());
+}
+
+TEST(QueueTest, clearShouldRemoveAllElements)
+{
+  constexpr auto expectedFinalSize{0};
+  constexpr auto expectedSizeAfterPush{5};
+  Queue<std::string> queue;
+
+  queue.enqueue("item1");
+  queue.enqueue("item2");
+  queue.enqueue("item3");
+  queue.enqueue("item4");
+  queue.enqueue("item5");
+
+  ASSERT_EQ(expectedSizeAfterPush, queue.size());
+
+  queue.clear();
+
+  ASSERT_EQ(expectedFinalSize, queue.size());
+  ASSERT_TRUE(queue.isEmpty());
+}
+}  // namespace queue
+
 namespace efficient_stack
 {
 using CapacityType = std::size_t;
@@ -23,13 +130,13 @@ class AddNewElementsToStackTest
 
 TEST_P(AddNewElementsToStackTest, shouldAddNewElementsToStack)
 {
-   const auto& [capacity, expectedSize, elements]{GetParam()};
+  const auto& [capacity, expectedSize, elements]{GetParam()};
 
-   Stack<int32_t> stack{capacity};
+  Stack<int32_t> stack{capacity};
 
-   std::ranges::for_each(elements, [&stack](auto e) { stack.push(e); });
+  std::ranges::for_each(elements, [&stack](auto e) { stack.push(e); });
 
-   ASSERT_EQ(expectedSize, stack.size());
+  ASSERT_EQ(expectedSize, stack.size());
 }
 
 INSTANTIATE_TEST_SUITE_P(NewStackElementsTest, AddNewElementsToStackTest,
@@ -39,106 +146,106 @@ INSTANTIATE_TEST_SUITE_P(NewStackElementsTest, AddNewElementsToStackTest,
 
 TEST(StackTest, shouldSizeBeCalculatedCorrectly)
 {
-   Stack<int32_t> stack{2};
-   constexpr auto expectedSize{0};
+  Stack<int32_t> stack{2};
+  constexpr auto expectedSize{0};
 
-   ASSERT_EQ(expectedSize, stack.size());
+  ASSERT_EQ(expectedSize, stack.size());
 }
 
 TEST(StackTest, isEmptyWorksCorrectly)
 {
-   Stack<int32_t> stack;
-   constexpr auto expectedResult{true};
+  Stack<int32_t> stack;
+  constexpr auto expectedResult{true};
 
-   ASSERT_EQ(expectedResult, stack.isEmpty());
+  ASSERT_EQ(expectedResult, stack.isEmpty());
 }
 
 TEST(StackTest, rbeginShouldReturnLastElement)
 {
-   Stack<int32_t> stack{20};
+  Stack<int32_t> stack{20};
 
-   stack.push(1);
-   stack.push(2);
-   stack.push(374563123);
+  stack.push(1);
+  stack.push(2);
+  stack.push(374563123);
 
-   ASSERT_EQ(*(stack.end() - 1), *stack.rbegin());
+  ASSERT_EQ(*(stack.end() - 1), *stack.rbegin());
 }
 
 TEST(StackTest, rendShouldReturnFirstElement)
 {
-   Stack<int32_t> stack{10};
+  Stack<int32_t> stack{10};
 
-   stack.push(834278671);
-   stack.push(2);
-   stack.push(3);
+  stack.push(834278671);
+  stack.push(2);
+  stack.push(3);
 
-   ASSERT_EQ(*(stack.begin()), *(stack.rend() - 1));
+  ASSERT_EQ(*(stack.begin()), *(stack.rend() - 1));
 }
 
 TEST(StackTest, stackShouldPopElements)
 {
-   Stack<int32_t> stack{10};
+  Stack<int32_t> stack{10};
 
-   constexpr size_t expectedSize{2};
-   constexpr size_t expectedElement{3};
+  constexpr size_t expectedSize{2};
+  constexpr size_t expectedElement{3};
 
-   stack.push(1);
-   stack.push(2);
-   stack.push(3);
+  stack.push(1);
+  stack.push(2);
+  stack.push(3);
 
-   ASSERT_EQ(expectedElement, stack.pop());
-   ASSERT_EQ(expectedSize, stack.size());
+  ASSERT_EQ(expectedElement, stack.pop());
+  ASSERT_EQ(expectedSize, stack.size());
 }
 
 TEST(StackTest, stackShouldPopAllElementsAndHaveToBeEmpty)
 {
-   Stack<int32_t> stack{1};
+  Stack<int32_t> stack{1};
 
-   constexpr size_t expectedSize{0};
-   constexpr size_t expectedElement1{3};
-   constexpr size_t expectedElement2{2};
-   constexpr size_t expectedElement3{1};
+  constexpr size_t expectedSize{0};
+  constexpr size_t expectedElement1{3};
+  constexpr size_t expectedElement2{2};
+  constexpr size_t expectedElement3{1};
 
-   stack.push(1);
-   stack.push(2);
-   stack.push(3);
+  stack.push(1);
+  stack.push(2);
+  stack.push(3);
 
-   ASSERT_EQ(expectedElement1, stack.pop());
-   ASSERT_EQ(expectedElement2, stack.pop());
-   ASSERT_EQ(expectedElement3, stack.pop());
-   ASSERT_EQ(expectedSize, stack.size());
+  ASSERT_EQ(expectedElement1, stack.pop());
+  ASSERT_EQ(expectedElement2, stack.pop());
+  ASSERT_EQ(expectedElement3, stack.pop());
+  ASSERT_EQ(expectedSize, stack.size());
 }
 
 TEST(StackTest, stackShouldDoNothingWhenPopIfStackIsEmpty)
 {
-   constexpr size_t expectedSize{0};
-   Stack<int32_t> stack{0};
+  constexpr size_t expectedSize{0};
+  Stack<int32_t> stack{0};
 
-   stack.pop();
-   stack.pop();
-   stack.pop();
-   stack.pop();
+  stack.pop();
+  stack.pop();
+  stack.pop();
+  stack.pop();
 
-   ASSERT_EQ(expectedSize, stack.size());
+  ASSERT_EQ(expectedSize, stack.size());
 }
 
 TEST(StackTest, stackShouldDoNothingWhenPopIfStackIsEmpty2)
 {
-   constexpr size_t expectedSize{0};
-   Stack<int32_t> stack{0};
+  constexpr size_t expectedSize{0};
+  Stack<int32_t> stack{0};
 
-   stack.push(4);
-   stack.push(5);
-   stack.push(6);
+  stack.push(4);
+  stack.push(5);
+  stack.push(6);
 
-   stack.pop();
-   stack.pop();
-   stack.pop();
-   stack.pop();
-   stack.pop();
-   stack.pop();
+  stack.pop();
+  stack.pop();
+  stack.pop();
+  stack.pop();
+  stack.pop();
+  stack.pop();
 
-   ASSERT_EQ(expectedSize, stack.size());
+  ASSERT_EQ(expectedSize, stack.size());
 }
 }  // namespace efficient_stack
 
@@ -147,104 +254,104 @@ namespace linked_list_stack
 
 struct LinkedListStackTest : public ::testing::Test
 {
-   void TearDown() override { stack.clear(); }
+  void TearDown() override { stack.clear(); }
 
-   Stack<std::string> stack{};  // NOLINT (misc-non-private-member-variables-in-classes)
+  Stack<std::string> stack{};  // NOLINT (misc-non-private-member-variables-in-classes)
 };
 
 TEST_F(LinkedListStackTest, newlyCreatedStackShouldBeEmpty)
 {
-   constexpr std::size_t expectedSize{0};
+  constexpr std::size_t expectedSize{0};
 
-   ASSERT_EQ(expectedSize, stack.size());
-   ASSERT_TRUE(stack.isEmpty());
+  ASSERT_EQ(expectedSize, stack.size());
+  ASSERT_TRUE(stack.isEmpty());
 }
 
 TEST_F(LinkedListStackTest, clearShouldRemoveAllElementsFromStack)
 {
-   constexpr std::size_t expectedSize{0};
+  constexpr std::size_t expectedSize{0};
 
-   stack.push("1");
-   stack.push("2");
-   stack.push("3");
+  stack.push("1");
+  stack.push("2");
+  stack.push("3");
 
-   stack.clear();
+  stack.clear();
 
-   ASSERT_EQ(expectedSize, stack.size());
-   ASSERT_TRUE(stack.isEmpty());
+  ASSERT_EQ(expectedSize, stack.size());
+  ASSERT_TRUE(stack.isEmpty());
 }
 
 TEST_F(LinkedListStackTest, pushItemToStack)
 {
-   constexpr std::size_t expectedSize{1};
+  constexpr std::size_t expectedSize{1};
 
-   stack.push(std::string{"push_test"});
+  stack.push(std::string{"push_test"});
 
-   ASSERT_EQ(expectedSize, stack.size());
-   ASSERT_FALSE(stack.isEmpty());
+  ASSERT_EQ(expectedSize, stack.size());
+  ASSERT_FALSE(stack.isEmpty());
 }
 
 TEST_F(LinkedListStackTest, pushItemsToStack)
 {
-   constexpr std::size_t expectedSize{4};
+  constexpr std::size_t expectedSize{4};
 
-   stack.push(std::string{"push_test1"});
-   stack.push(std::string{"push_test2"});
-   stack.push(std::string{"push_test3"});
-   stack.push(std::string{"push_test4"});
+  stack.push(std::string{"push_test1"});
+  stack.push(std::string{"push_test2"});
+  stack.push(std::string{"push_test3"});
+  stack.push(std::string{"push_test4"});
 
-   ASSERT_EQ(expectedSize, stack.size());
-   ASSERT_FALSE(stack.isEmpty());
+  ASSERT_EQ(expectedSize, stack.size());
+  ASSERT_FALSE(stack.isEmpty());
 }
 
 TEST_F(LinkedListStackTest, popItemFromStack)
 {
-   constexpr std::size_t expectedFinalSize{0};
-   constexpr std::size_t expectedAfterPushSize{1};
-   const std::string expectedPopResult{"push_test1"};
+  constexpr std::size_t expectedFinalSize{0};
+  constexpr std::size_t expectedAfterPushSize{1};
+  const std::string expectedPopResult{"push_test1"};
 
-   stack.push(expectedPopResult);
+  stack.push(expectedPopResult);
 
-   ASSERT_EQ(expectedAfterPushSize, stack.size());
+  ASSERT_EQ(expectedAfterPushSize, stack.size());
 
-   const auto popResult{stack.pop()};
-   (void)stack.pop();
-   (void)stack.pop();
-   (void)stack.pop();
-   (void)stack.pop();
+  const auto popResult{stack.pop()};
+  stack.pop();
+  stack.pop();
+  stack.pop();
+  stack.pop();
 
-   ASSERT_EQ(expectedPopResult, popResult);
-   ASSERT_EQ(expectedFinalSize, stack.size());
-   ASSERT_TRUE(stack.isEmpty());
+  ASSERT_EQ(expectedPopResult, popResult);
+  ASSERT_EQ(expectedFinalSize, stack.size());
+  ASSERT_TRUE(stack.isEmpty());
 }
 
 TEST_F(LinkedListStackTest, popItemsFromStack)
 {
-   constexpr std::size_t expectedFinalSize{0};
-   constexpr std::size_t expectedAftefPushSize{4};
-   const std::string expectedPopResult1{"push_test1"};
-   const std::string expectedPopResult2{"push_test2"};
-   const std::string expectedPopResult3{"push_test3"};
-   const std::string expectedPopResult4{"push_test4"};
+  constexpr std::size_t expectedFinalSize{0};
+  constexpr std::size_t expectedAftefPushSize{4};
+  const std::string expectedPopResult1{"push_test1"};
+  const std::string expectedPopResult2{"push_test2"};
+  const std::string expectedPopResult3{"push_test3"};
+  const std::string expectedPopResult4{"push_test4"};
 
-   stack.push(expectedPopResult1);
-   stack.push(expectedPopResult2);
-   stack.push(expectedPopResult3);
-   stack.push(expectedPopResult4);
+  stack.push(expectedPopResult1);
+  stack.push(expectedPopResult2);
+  stack.push(expectedPopResult3);
+  stack.push(expectedPopResult4);
 
-   ASSERT_EQ(expectedAftefPushSize, stack.size());
+  ASSERT_EQ(expectedAftefPushSize, stack.size());
 
-   const auto popResult4{stack.pop()};
-   const auto popResult3{stack.pop()};
-   const auto popResult2{stack.pop()};
-   const auto popResult1{stack.pop()};
+  const auto popResult4{stack.pop()};
+  const auto popResult3{stack.pop()};
+  const auto popResult2{stack.pop()};
+  const auto popResult1{stack.pop()};
 
-   ASSERT_EQ(expectedPopResult1, popResult1);
-   ASSERT_EQ(expectedPopResult2, popResult2);
-   ASSERT_EQ(expectedPopResult3, popResult3);
-   ASSERT_EQ(expectedPopResult4, popResult4);
-   ASSERT_EQ(expectedFinalSize, stack.size());
-   ASSERT_TRUE(stack.isEmpty());
+  ASSERT_EQ(expectedPopResult1, popResult1);
+  ASSERT_EQ(expectedPopResult2, popResult2);
+  ASSERT_EQ(expectedPopResult3, popResult3);
+  ASSERT_EQ(expectedPopResult4, popResult4);
+  ASSERT_EQ(expectedFinalSize, stack.size());
+  ASSERT_TRUE(stack.isEmpty());
 }
 }  // namespace linked_list_stack
 

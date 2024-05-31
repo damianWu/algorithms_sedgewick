@@ -1,8 +1,9 @@
+// "Copyright [2024] <@damianWu>"
+
 #include <gtest/gtest.h>
 
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    // ::testing::GTEST_FLAG(filter) = "*popItemFromStack*";
-    return RUN_ALL_TESTS();
+int main(int argc, char** argv)
+{
+   ::testing::InitGoogleTest(&argc, argv);
+   return RUN_ALL_TESTS();
 }
