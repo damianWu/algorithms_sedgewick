@@ -2,8 +2,6 @@
 #ifndef SRC_CH1_CH1_CH1_HPP_
 #define SRC_CH1_CH1_CH1_HPP_
 
-#include <corecrt.h>
-
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -100,7 +98,8 @@ bool Queue<Item>::remove(size_t k)
   {
     return false;
   }
-  else if (size() == 1 || k == 0)
+
+  if (size() == 1 || k == 0)
   {
     dequeue();
     return true;

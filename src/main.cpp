@@ -9,7 +9,6 @@ int main()
 {
   try
   {
-    fmt::print("hello{}\n", 21);
   }
   catch (const std::exception &e)
   {
