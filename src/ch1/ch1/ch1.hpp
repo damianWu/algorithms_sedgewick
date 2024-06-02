@@ -106,24 +106,22 @@ bool Queue<Item>::remove(size_t k)
     return true;
   }
 
-  Iterator<Item> currentNode{begin()};
-  Iterator<Item> prevNode{currentNode};
-  for (size_t i = 0; i < k; ++i)
+  Iterator<Item> currentIt{begin()};
+  Iterator<Item> prevIt{currentIt};
+  for (size_t i{}; i < k; ++i)
   {
-    prevNode = currentNode++;
+    prevIt = currentIt++;
   }
 
-  std::cout << "         prev_it= " << (*prevNode).item << '\n';
-  std::cout << "I will remove it= " << (*currentNode).item << '\n';
-  Node<Item>& prevPtr{*prevNode};
-  const Node<Item>& ptr{*currentNode};
+  Node<Item>& prevNode{*prevIt};
+  const Node<Item>& currentNode{*currentIt};
 
-  prevPtr.next = ptr.next;
-  delete &ptr;
+  prevNode.next = currentNode.next;
+  delete &currentNode;
 
   if (size() - 1 == k)
   {
-    m_last = &prevPtr;
+    m_last = &prevNode;
   }
   --m_size;
 
