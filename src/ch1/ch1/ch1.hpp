@@ -61,28 +61,45 @@ namespace queue
 using it::Iterator;
 using it::Node;
 
+template <typename Item>
+struct Queue
+{
+  virtual ~Queue() = default;
+
+  virtual void enqueue(Item item) = 0;
+  virtual Item dequeue() = 0;
+  virtual void clear() = 0;
+  virtual bool remove(size_t k) = 0;
+
+  [[nodiscard]] virtual bool isEmpty() const = 0;
+  [[nodiscard]] virtual std::size_t size() const = 0;
+
+  virtual Iterator<Item> begin() = 0;
+  virtual Iterator<Item> end() = 0;
+};
+
 // Queue of type FIFO
 template <typename Item>
-class Queue
+class QueueImpl : public Queue<Item>
 {
 public:
-  Queue() = default;
-  Queue(const Queue&) = delete;
-  Queue(Queue&&) = delete;
-  Queue& operator=(Queue&&) = delete;
-  Queue& operator=(const Queue&) = delete;
-  ~Queue();
+  QueueImpl() = default;
+  QueueImpl(const QueueImpl&) = delete;
+  QueueImpl(QueueImpl&&) = delete;
+  QueueImpl& operator=(QueueImpl&&) = delete;
+  QueueImpl& operator=(const QueueImpl&) = delete;
+  ~QueueImpl() override;
 
-  void enqueue(Item item);
-  Item dequeue();
-  void clear();
-  bool remove(size_t k);
+  void enqueue(Item item) override;
+  Item dequeue() override;
+  void clear() override;
+  bool remove(size_t k) override;
 
-  [[nodiscard]] bool isEmpty() const;
-  [[nodiscard]] std::size_t size() const;
+  [[nodiscard]] bool isEmpty() const override;
+  [[nodiscard]] std::size_t size() const override;
 
-  Iterator<Item> begin() { return Iterator<Item>(m_first); }
-  Iterator<Item> end() { return Iterator<Item>(nullptr); }
+  Iterator<Item> begin() override { return Iterator<Item>(m_first); }
+  Iterator<Item> end() override { return Iterator<Item>(nullptr); }
 
 private:
   Node<Item>* m_first{};
@@ -92,7 +109,7 @@ private:
 };
 
 template <typename Item>
-bool Queue<Item>::remove(size_t k)
+bool QueueImpl<Item>::remove(size_t k)
 {
   // If out of range
   if (k >= size())
@@ -129,7 +146,7 @@ bool Queue<Item>::remove(size_t k)
 }
 
 template <typename Item>
-void Queue<Item>::clear()
+void QueueImpl<Item>::clear()
 {
   if (isEmpty())
   {
@@ -148,13 +165,13 @@ void Queue<Item>::clear()
 }
 
 template <typename Item>
-Queue<Item>::~Queue()
+QueueImpl<Item>::~QueueImpl()
 {
   clear();
 }
 
 template <typename Item>
-Item Queue<Item>::dequeue()
+Item QueueImpl<Item>::dequeue()
 {
   if (isEmpty())
   {
@@ -173,7 +190,7 @@ Item Queue<Item>::dequeue()
 }
 
 template <typename Item>
-void Queue<Item>::enqueue(Item item)
+void QueueImpl<Item>::enqueue(Item item)
 {
   auto oldLast{m_last};
   m_last = new Node<Item>{std::move(item)};
@@ -189,13 +206,13 @@ void Queue<Item>::enqueue(Item item)
 }
 
 template <typename Item>
-[[nodiscard]] inline bool Queue<Item>::isEmpty() const
+[[nodiscard]] inline bool QueueImpl<Item>::isEmpty() const
 {
   return m_size == 0;
 }
 
 template <typename Item>
-[[nodiscard]] inline std::size_t Queue<Item>::size() const
+[[nodiscard]] inline std::size_t QueueImpl<Item>::size() const
 {
   return m_size;
 }

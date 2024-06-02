@@ -21,7 +21,7 @@ namespace queue
 TEST(QueueTest, addNewElementToQueue)
 {
   constexpr auto expectedSize{1};
-  Queue<std::string> queue;
+  QueueImpl<std::string> queue;
   std::string item{"First item"};
 
   queue.enqueue(item);
@@ -33,7 +33,7 @@ TEST(QueueTest, addNewElementToQueue)
 TEST(QueueTest, addNewElementsToQueue)
 {
   constexpr auto expectedSize{4};
-  Queue<std::string> queue;
+  QueueImpl<std::string> queue;
   std::string item1{"First item"};
   std::string item2{"2 item"};
   std::string item3{"3 item"};
@@ -52,7 +52,7 @@ TEST(QueueTest, removeElementFromQueue)
 {
   constexpr auto expectedSize{0};
   constexpr auto expectedSizeAfterPush{1};
-  Queue<std::string> queue;
+  QueueImpl<std::string> queue;
   std::string expectedItem{"First item"};
 
   queue.enqueue(expectedItem);
@@ -74,7 +74,7 @@ TEST(QueueTest, removeElementsFromQueue)
 {
   constexpr auto expectedFinalSize{0};
   constexpr auto expectedSizeAfterPush{4};
-  Queue<std::string> queue;
+  QueueImpl<std::string> queue;
   std::string item1{"First item"};
   std::string item2{"2nd item"};
   std::string item3{"3rd item"};
@@ -104,7 +104,7 @@ TEST(QueueTest, clearShouldRemoveAllElements)
 {
   constexpr auto expectedFinalSize{0};
   constexpr auto expectedSizeAfterPush{5};
-  Queue<std::string> queue;
+  QueueImpl<std::string> queue;
 
   queue.enqueue("item1");
   queue.enqueue("item2");
@@ -124,7 +124,7 @@ TEST(QueueTest, iterateThroughList)
 {
   std::vector<std::string> items{"item1", "item2", "item3", "item4", "item5"};
 
-  Queue<std::string> queue;
+  QueueImpl<std::string> queue;
   for (const auto& s : items)
   {
     queue.enqueue(s);
@@ -146,7 +146,7 @@ TEST(QueueTest, removeKthElement)
   constexpr auto expectedSize{4};
   constexpr std::array<std::string_view, 5> items{"item1", "item2", "item4", "item5"};
 
-  Queue<std::string> queue;
+  QueueImpl<std::string> queue;
   queue.enqueue("item1");
   queue.enqueue("item2");
   queue.enqueue("item3");
@@ -173,7 +173,7 @@ TEST(QueueTest, removeOutOfBounds)
 {
   constexpr auto expectedResult{false};
 
-  Queue<std::string> queue;
+  QueueImpl<std::string> queue;
   queue.enqueue("item1");
   queue.enqueue("item2");
 
@@ -185,7 +185,7 @@ TEST(QueueTest, removeLastElement)
   constexpr auto expectedResult{true};
   constexpr auto expectedSize{4};
 
-  Queue<std::string> queue;
+  QueueImpl<std::string> queue;
   queue.enqueue("item1");
   queue.enqueue("item2");
   queue.enqueue("item3");
@@ -202,7 +202,7 @@ TEST(QueueTest, removeFirstElement)
   constexpr auto expectedSize{4};
   const std::string_view expectedBegin{"item2"};
 
-  Queue<std::string> queue;
+  QueueImpl<std::string> queue;
   queue.enqueue("item1");
   queue.enqueue("item2");
   queue.enqueue("item3");
@@ -218,7 +218,7 @@ TEST(QueueTest, removeWithSizeOne)
 {
   constexpr auto expectedResult{true};
 
-  Queue<std::string> queue;
+  QueueImpl<std::string> queue;
   queue.enqueue("item1");
 
   ASSERT_EQ(expectedResult, queue.remove(0));
