@@ -56,8 +56,8 @@ TEST(QueueTest, removeElementFromQueue)
 
   ASSERT_EQ(expectedSizeAfterPush, queue.size());
 
-  const std::string item{queue.dequeue()};
-  const std::string emptyItem{queue.dequeue()};
+  const std::string_view item{queue.dequeue()};
+  const std::string_view emptyItem{queue.dequeue()};
   queue.dequeue();
   queue.dequeue();
 
@@ -141,21 +141,23 @@ TEST(QueueTest, iterateThroughList)
 TEST(QueueTest, removeKthElement)
 {
   constexpr auto expectedSize{4};
-  const std::string_view expectedItem{"item4"};
+  constexpr std::string_view expectedItem1{"item1"};
+  constexpr std::string_view expectedItem2{"item2"};
+  constexpr std::string_view expectedItem4{"item4"};
 
   Queue<std::string> queue;
   queue.enqueue("item1");
   queue.enqueue("item2");
-  queue.enqueue("item3");  // 2
+  queue.enqueue("item3");
   queue.enqueue("item4");
   queue.enqueue("item5");
 
   queue.remove(2);
   ASSERT_EQ(expectedSize, queue.size());
 
-  queue.dequeue();
-  queue.dequeue();
-  ASSERT_EQ(expectedItem, queue.dequeue());
+  ASSERT_EQ(expectedItem1, queue.dequeue());
+  ASSERT_EQ(expectedItem2, queue.dequeue());
+  ASSERT_EQ(expectedItem4, queue.dequeue());
 }
 
 TEST(QueueTest, removeOutOfBounds)
@@ -167,6 +169,40 @@ TEST(QueueTest, removeOutOfBounds)
   queue.enqueue("item2");
 
   ASSERT_EQ(expectedResult, queue.remove(20));
+}
+
+TEST(QueueTest, removeLastElement)
+{
+  constexpr auto expectedResult{true};
+  constexpr auto expectedSize{4};
+
+  Queue<std::string> queue;
+  queue.enqueue("item1");
+  queue.enqueue("item2");
+  queue.enqueue("item3");
+  queue.enqueue("item4");
+  queue.enqueue("item5");
+
+  ASSERT_EQ(expectedResult, queue.remove(4));
+  ASSERT_EQ(expectedSize, queue.size());
+}
+
+TEST(QueueTest, removeFirstElement)
+{
+  constexpr auto expectedResult{true};
+  constexpr auto expectedSize{4};
+  const std::string_view expectedBegin{"item2"};
+
+  Queue<std::string> queue;
+  queue.enqueue("item1");
+  queue.enqueue("item2");
+  queue.enqueue("item3");
+  queue.enqueue("item4");
+  queue.enqueue("item5");
+
+  ASSERT_EQ(expectedResult, queue.remove(0));
+  ASSERT_EQ(expectedBegin, (*queue.begin()).item);
+  ASSERT_EQ(expectedSize, queue.size());
 }
 
 TEST(QueueTest, removeWithSizeOne)

@@ -60,6 +60,8 @@ private:
 
 namespace queue
 {
+using it::Node;
+
 // Queue of type FIFO
 template <typename Item>
 class Queue
@@ -84,8 +86,8 @@ public:
   it::Iterator<Item> end() { return it::Iterator<Item>(nullptr); }
 
 private:
-  it::Node<Item>* m_first{};
-  it::Node<Item>* m_last{};
+  Node<Item>* m_first{};
+  Node<Item>* m_last{};
 
   std::size_t m_size{};
 };
@@ -93,7 +95,6 @@ private:
 template <typename Item>
 bool Queue<Item>::remove(size_t k)
 {
-  using it::Node;
   if (k >= size())
   {
     return false;
@@ -112,12 +113,10 @@ bool Queue<Item>::remove(size_t k)
     prevNode = currentNode++;
   }
 
-  // Delete item between and last item?
-  // Handle neighbours
   std::cout << "         prev_it= " << (*prevNode).item << '\n';
   std::cout << "I will remove it= " << (*currentNode).item << '\n';
   Node<Item>& prevPtr{*prevNode};
-  Node<Item>& ptr{*currentNode};
+  const Node<Item>& ptr{*currentNode};
 
   prevPtr.next = ptr.next;
   delete &ptr;
@@ -139,7 +138,7 @@ void Queue<Item>::clear()
     return;
   }
 
-  for (it::Node<Item>* next{}; m_first->next != nullptr;)
+  for (Node<Item>* next{}; m_first->next != nullptr;)
   {
     next = m_first->next;
     delete m_first;
@@ -179,7 +178,7 @@ template <typename Item>
 void Queue<Item>::enqueue(Item item)
 {
   auto oldLast{m_last};
-  m_last = new it::Node<Item>{std::move(item)};
+  m_last = new Node<Item>{std::move(item)};
 
   ++m_size;
 
@@ -416,6 +415,7 @@ std::reverse_iterator<typename Stack<Item>::iterator> Stack<Item>::rend()
 
 namespace linked_list_stack
 {
+using it::Node;
 
 // Queue of type LIFO
 template <typename Item>
@@ -441,7 +441,7 @@ public:
   it::Iterator<Item> end() const { return it::Iterator<Item>{nullptr}; }
 
 private:
-  it::Node<Item>* m_first{};
+  Node<Item>* m_first{};
   std::size_t m_size{};
 };
 
@@ -482,7 +482,7 @@ template <typename Item>
 void Stack<Item>::push(Item item)
 {
   auto* oldFirst{m_first};
-  m_first = new it::Node<Item>{std::move(item), oldFirst};
+  m_first = new Node<Item>{std::move(item), oldFirst};
 
   ++m_size;
 }
