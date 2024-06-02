@@ -137,6 +137,48 @@ TEST(QueueTest, iterateThroughList)
     ++i;
   }
 }
+
+TEST(QueueTest, removeKthElement)
+{
+  constexpr auto expectedSize{4};
+  const std::string_view expectedItem{"item4"};
+
+  Queue<std::string> queue;
+  queue.enqueue("item1");
+  queue.enqueue("item2");
+  queue.enqueue("item3");  // 2
+  queue.enqueue("item4");
+  queue.enqueue("item5");
+
+  queue.remove(2);
+  ASSERT_EQ(expectedSize, queue.size());
+
+  queue.dequeue();
+  queue.dequeue();
+  ASSERT_EQ(expectedItem, queue.dequeue());
+}
+
+TEST(QueueTest, removeOutOfBounds)
+{
+  constexpr auto expectedResult{false};
+
+  Queue<std::string> queue;
+  queue.enqueue("item1");
+  queue.enqueue("item2");
+
+  ASSERT_EQ(expectedResult, queue.remove(20));
+}
+
+TEST(QueueTest, removeWithSizeOne)
+{
+  constexpr auto expectedResult{true};
+
+  Queue<std::string> queue;
+  queue.enqueue("item1");
+
+  ASSERT_EQ(expectedResult, queue.remove(0));
+}
+
 }  // namespace queue
 
 namespace efficient_stack
@@ -432,6 +474,7 @@ INSTANTIATE_TEST_SUITE_P(DISABLED_Ex1_3_5Test, Ex1_3_5Test,
                                          std::make_pair("", true), std::make_pair("[[]]", true),
                                          std::make_pair("[([])]{}{", false),
                                          std::make_pair("asddas", false)));
+
 }  // namespace homework
 
 }  // namespace ch1

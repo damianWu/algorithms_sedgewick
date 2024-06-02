@@ -2,12 +2,16 @@
 #ifndef SRC_CH1_CH1_CH1_HPP_
 #define SRC_CH1_CH1_CH1_HPP_
 
+#include <corecrt.h>
+
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <utility>
@@ -28,13 +32,10 @@ struct Node
 template <typename Item>
 struct Iterator
 {
-  using pointer = Node<Item>*;
-  using reference = Node<Item>&;
+  explicit Iterator(Node<Item>* ptr) : m_ptr(ptr) {}
 
-  explicit Iterator(pointer ptr) : m_ptr(ptr) {}
-
-  reference operator*() const { return *m_ptr; }
-  pointer operator->() { return m_ptr; }
+  Node<Item>& operator*() const { return *m_ptr; }
+  Node<Item>* operator->() { return m_ptr; }
 
   // Prefix increment
   Iterator& operator++()
@@ -46,7 +47,7 @@ struct Iterator
   // Postfix increment
   Iterator operator++(int)
   {
-    Iterator tmp{m_ptr->next};
+    Iterator tmp{m_ptr};
     ++(*this);
     return tmp;
   }
@@ -55,7 +56,7 @@ struct Iterator
   friend bool operator!=(const Iterator& a, const Iterator& b) { return a.m_ptr != b.m_ptr; }
 
 private:
-  pointer m_ptr;
+  Node<Item>* m_ptr;
 };
 }  // namespace it
 
@@ -76,6 +77,7 @@ public:
   void enqueue(Item item);
   Item dequeue();
   void clear();
+  bool remove(size_t k);
 
   [[nodiscard]] bool isEmpty() const;
   [[nodiscard]] std::size_t size() const;
@@ -89,6 +91,46 @@ private:
 
   std::size_t m_size{};
 };
+
+template <typename Item>
+bool Queue<Item>::remove(size_t k)
+{
+  using it::Node;
+  if (k >= size())
+  {
+    return false;
+  }
+  else if (size() == 1 || k == 0)
+  {
+    dequeue();
+    return true;
+  }
+
+  it::Iterator<Item> currentNode{begin()};
+  it::Iterator<Item> prevNode{currentNode};
+  for (size_t i = 0; i < k; ++i)
+  {
+    prevNode = currentNode++;
+  }
+
+  // Delete item between and last item?
+  // Handle neighbours
+  std::cout << "         prev_it= " << (*prevNode).item << '\n';
+  std::cout << "I will remove it= " << (*currentNode).item << '\n';
+  Node<Item>& prevPtr{*prevNode};
+  Node<Item>& ptr{*currentNode};
+
+  prevPtr.next = ptr.next;
+  delete &ptr;
+
+  if (size() - 1 == k)
+  {
+    m_last = &prevPtr;
+  }
+  --m_size;
+
+  return true;
+}
 
 template <typename Item>
 void Queue<Item>::clear()
@@ -252,7 +294,7 @@ template <typename Item>
 template <typename Item>
 Item Stack<Item>::peek() const
 {
-  if(isEmpty())
+  if (isEmpty())
   {
     return {};
   }
@@ -462,7 +504,7 @@ template <typename Item>
 
 namespace homework
 {
-bool ex1_3_5(const std::string& input)
+bool ex1_3_5(std::string_view input)
 {
   ch1::efficient_stack::Stack<char> opening_parenthesis;
 
@@ -492,6 +534,7 @@ bool ex1_3_5(const std::string& input)
   }
   return opening_parenthesis.isEmpty();
 }
+
 }  // namespace homework
 
 #endif  // SRC_CH1_CH1_CH1_HPP_
