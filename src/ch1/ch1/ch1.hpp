@@ -65,6 +65,10 @@ template <typename Item>
 struct Queue
 {
   virtual ~Queue() = default;
+  Queue(const Queue&) = delete;
+  Queue(Queue&&) = delete;
+  Queue& operator=(Queue&&) = delete;
+  Queue& operator=(const Queue&) = delete;
 
   virtual void enqueue(Item item) = 0;
   virtual Item dequeue() = 0;
@@ -84,10 +88,6 @@ class QueueImpl : public Queue<Item>
 {
 public:
   QueueImpl() = default;
-  QueueImpl(const QueueImpl&) = delete;
-  QueueImpl(QueueImpl&&) = delete;
-  QueueImpl& operator=(QueueImpl&&) = delete;
-  QueueImpl& operator=(const QueueImpl&) = delete;
   ~QueueImpl() override;
 
   void enqueue(Item item) override;
