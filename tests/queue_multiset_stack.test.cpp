@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
@@ -9,6 +11,7 @@
 #include <string_view>
 #include <vector>
 
+// NOLINTNEXTLINE
 #include "ch1/ch1.hpp"
 
 namespace ch1
@@ -141,9 +144,7 @@ TEST(QueueTest, iterateThroughList)
 TEST(QueueTest, removeKthElement)
 {
   constexpr auto expectedSize{4};
-  constexpr std::string_view expectedItem1{"item1"};
-  constexpr std::string_view expectedItem2{"item2"};
-  constexpr std::string_view expectedItem4{"item4"};
+  constexpr std::array<std::string_view, 5> items{"item1", "item2", "item4", "item5"};
 
   Queue<std::string> queue;
   queue.enqueue("item1");
@@ -155,9 +156,17 @@ TEST(QueueTest, removeKthElement)
   queue.remove(2);
   ASSERT_EQ(expectedSize, queue.size());
 
-  ASSERT_EQ(expectedItem1, queue.dequeue());
-  ASSERT_EQ(expectedItem2, queue.dequeue());
-  ASSERT_EQ(expectedItem4, queue.dequeue());
+  auto itemsIt{std::begin(items)};
+  std::for_each(
+      std::begin(queue), std::end(queue),
+      [&itemsIt](const auto& node)
+      {
+        if (node.item != *itemsIt++)
+        {
+          FAIL()
+              << "Every element should be equal. There is inconsistency in removing items from queue.";
+        }
+      });
 }
 
 TEST(QueueTest, removeOutOfBounds)

@@ -3,7 +3,6 @@
 #define SRC_CH1_CH1_CH1_HPP_
 
 #include <algorithm>
-#include <array>
 #include <cassert>
 #include <cmath>
 #include <cstddef>
@@ -17,7 +16,6 @@
 namespace ch1
 {
 using size_t = std::size_t;
-
 namespace it
 {
 template <typename Item>
@@ -43,7 +41,7 @@ struct Iterator
   }
 
   // Postfix increment
-  Iterator operator++(int)
+  Iterator operator++(int)  // NOLINT
   {
     Iterator tmp{m_ptr};
     ++(*this);
@@ -60,6 +58,7 @@ private:
 
 namespace queue
 {
+using it::Iterator;
 using it::Node;
 
 // Queue of type FIFO
@@ -82,8 +81,8 @@ public:
   [[nodiscard]] bool isEmpty() const;
   [[nodiscard]] std::size_t size() const;
 
-  it::Iterator<Item> begin() { return it::Iterator<Item>(m_first); }
-  it::Iterator<Item> end() { return it::Iterator<Item>(nullptr); }
+  Iterator<Item> begin() { return Iterator<Item>(m_first); }
+  Iterator<Item> end() { return Iterator<Item>(nullptr); }
 
 private:
   Node<Item>* m_first{};
@@ -95,6 +94,7 @@ private:
 template <typename Item>
 bool Queue<Item>::remove(size_t k)
 {
+  // If out of range
   if (k >= size())
   {
     return false;
@@ -106,8 +106,8 @@ bool Queue<Item>::remove(size_t k)
     return true;
   }
 
-  it::Iterator<Item> currentNode{begin()};
-  it::Iterator<Item> prevNode{currentNode};
+  Iterator<Item> currentNode{begin()};
+  Iterator<Item> prevNode{currentNode};
   for (size_t i = 0; i < k; ++i)
   {
     prevNode = currentNode++;
@@ -323,10 +323,9 @@ void Stack<Item>::reallocate()
 template <typename Item>
 void Stack<Item>::allocate(iterator first, iterator firstFree)
 {
-  const auto newCapacity{calculateNewCapacity()};
+  const size_t newCapacity{calculateNewCapacity()};
   m_first = ms_allocatorTraits.allocate(ms_allocator, newCapacity);
   m_onePastLast = m_first + newCapacity;
-  assert(newCapacity == m_onePastLast - m_first);  // TODO(damianWu) - to delete?
   m_firstFree = std::uninitialized_move(first, firstFree, m_first);
 }
 
@@ -415,6 +414,7 @@ std::reverse_iterator<typename Stack<Item>::iterator> Stack<Item>::rend()
 
 namespace linked_list_stack
 {
+using it::Iterator;
 using it::Node;
 
 // Queue of type LIFO
@@ -437,8 +437,8 @@ public:
   void push(Item);
   void clear();
 
-  it::Iterator<Item> begin() const { return it::Iterator<Item>{m_first}; }
-  it::Iterator<Item> end() const { return it::Iterator<Item>{nullptr}; }
+  Iterator<Item> begin() const { return Iterator<Item>{m_first}; }
+  Iterator<Item> end() const { return Iterator<Item>{nullptr}; }
 
 private:
   Node<Item>* m_first{};
