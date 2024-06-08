@@ -10,8 +10,11 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
+#include <memory_resource>
 #include <string>
 #include <utility>
+
+#include "ch1/ch1.hpp"
 
 namespace ch1
 {
@@ -23,6 +26,14 @@ struct Node
 {
   Item item{};
   Node* next{};
+};
+
+template <typename T>
+struct DoubleNode
+{
+  T item{};
+  DoubleNode* next{};
+  DoubleNode* prev{};
 };
 
 template <typename Item>
@@ -54,7 +65,163 @@ struct Iterator
 private:
   Node<Item>* m_ptr;
 };
+
+template <typename T>
+struct BiIterator
+{
+  explicit BiIterator(Node<T>* ptr) : m_ptr(ptr) {}
+
+  DoubleNode<T>& operator*() const { return *m_ptr; }
+  Node<T>* operator->() { return m_ptr; }
+
+  // Prefix decrement
+  BiIterator& operator--()
+  {
+    // TODO(@damianWu) what if it is nullptr?
+    m_ptr = m_ptr->prev;
+    return *this;
+  }
+
+  // Prefix decrement
+  BiIterator operator--(int)  // NOLINT
+  {
+    // TODO(@damianWu) what if it is nullptr?
+    BiIterator tmp{m_ptr};
+    --(*this);
+    return tmp;
+  }
+
+  // Prefix increment
+  BiIterator& operator++()
+  {
+    m_ptr = m_ptr->next;
+    return *this;
+  }
+
+  // Postfix increment
+  BiIterator operator++(int)  // NOLINT
+  {
+    BiIterator tmp{m_ptr};
+    ++(*this);
+    return tmp;
+  }
+
+  friend bool operator==(const BiIterator& a, const BiIterator& b) { return a.m_ptr == b.m_ptr; }
+  friend bool operator!=(const BiIterator& a, const BiIterator& b) { return a.m_ptr != b.m_ptr; }
+
+private:
+  DoubleNode<T>* m_ptr;
+};
 }  // namespace it
+
+namespace double_linked_list
+{
+using it::DoubleNode;
+
+template <typename T>
+class LinkedList
+{
+public:
+  LinkedList() = default;
+  LinkedList(const LinkedList&) = delete;
+  LinkedList(LinkedList&&) = delete;
+  LinkedList& operator=(LinkedList&&) = delete;
+  LinkedList& operator=(const LinkedList&) = delete;
+  ~LinkedList();
+
+  [[nodiscard]] constexpr size_t size() const;
+  [[nodiscard]] constexpr bool isEmpty() const;
+
+  void clear();
+  void pushFront(T item);
+  void pushBack(T item);
+
+private:
+  DoubleNode<T> m_first;
+  DoubleNode<T> m_last;
+
+  size_t m_size{};
+};
+
+// [ ] Add DoubleIterator (needed for deletion of elements)
+template <typename T>
+void LinkedList<T>::clear()
+{
+  if (isEmpty())
+  {
+    return;
+  }
+
+  for (DoubleNode<T> current{}; m_first.next != nullptr;)
+  {
+    current = m_first++;
+    delete current;
+  }
+
+  if (m_last != nullptr)
+  {
+  }
+}
+
+template <typename T>
+LinkedList<T>::~LinkedList()
+{
+  // clear();
+}
+
+// [x] How to connect first with last?
+template <typename T>
+void LinkedList<T>::pushFront(T item)
+{
+  if (isEmpty())
+  {
+    m_first = new DoubleNode<T>{std::move(item)};
+    return;
+  }
+
+  m_first.prev = new DoubleNode<T>{std::move(item)};
+  m_first.prev->next = m_first;
+  m_first = m_first.prev;
+
+  if (m_last == nullptr)
+  {
+    m_last = m_first.next;
+  }
+}
+
+// [x] How to connect last with first?
+template <typename T>
+void LinkedList<T>::pushBack(T item)
+{
+  if (isEmpty())
+  {
+    m_last = new DoubleNode<T>{std::move(item)};
+    return;
+  }
+
+  m_last.next = new DoubleNode{std::move(item)};
+  m_last.next.prev = m_last;
+  m_last = m_last.next;
+
+  if (m_first == nullptr)
+  {
+    m_first = m_last.prev;
+  }
+}
+
+template <typename T>
+[[nodiscard]] constexpr inline size_t LinkedList<T>::size() const
+{
+  return m_size;
+}
+
+template <typename T>
+[[nodiscard]] constexpr inline bool LinkedList<T>::isEmpty() const
+{
+  return m_size == 0;
+}
+
+}  // namespace double_linked_list
 
 namespace queue
 {
@@ -64,6 +231,7 @@ using it::Node;
 template <typename Item>
 struct Queue
 {
+  Queue() = default;
   virtual ~Queue() = default;
   Queue(const Queue&) = delete;
   Queue(Queue&&) = delete;

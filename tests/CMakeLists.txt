@@ -28,7 +28,7 @@ target_link_libraries(
         gtest::gtest        # GTest libraries
 )
 
-# set(gtest_filter "--gtest_filter=*removeKthElement*")
+set(gtest_filter "--gtest_filter=*LinkedListTest*")
 
 # Add gtest to be able to run ctest.
 add_test(

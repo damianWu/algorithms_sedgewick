@@ -16,6 +16,28 @@
 
 namespace ch1
 {
+namespace double_linked_list
+{
+TEST(LinkedListTest, listShouldBeEmptyByDefault)
+{
+  LinkedList<std::string> list;
+
+  ASSERT_TRUE(list.isEmpty());
+  ASSERT_EQ(0, list.size());
+}
+
+TEST(LinkedListTest, pushFrontShouldAddNewElementToFront)
+{
+  constexpr auto expectedSize{1};
+  LinkedList<std::string> list;
+ 
+  list.pushFront("item1");
+
+  ASSERT_FALSE(list.isEmpty());
+  ASSERT_EQ(expectedSize, list.size());
+}
+}  // namespace double_linked_list
+
 namespace queue
 {
 TEST(QueueTest, addNewElementToQueue)
@@ -30,7 +52,7 @@ TEST(QueueTest, addNewElementToQueue)
   ASSERT_FALSE(queue.isEmpty());
 }
 
-TEST(QueueTest, addNewElementsToQueue)
+TEST(QueuqeTest, addNewElementsToQueue)
 {
   constexpr auto expectedSize{4};
   QueueImpl<std::string> queue;
