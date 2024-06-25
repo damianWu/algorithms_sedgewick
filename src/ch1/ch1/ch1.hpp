@@ -122,7 +122,7 @@ public:
   void pushLeft(T item);
   void pushRight(T item);
   bool putBefore(T item, T newItem);
-  bool putAfter(T item);
+  bool putAfter(T item, T newItem);
 
   // [/] wstawiania za danym węzłem
   // [ ] usuwania danego węzła.
@@ -144,6 +144,32 @@ std::optional<DoubleNode<T>*> LinkedList<T>::findNode(const T& item)
 {
   auto it{std::find_if(begin(), end(), [&item](auto it) { return it.item == item; })};
   return (it == end()) ? std::nullopt : std::make_optional(&*it);
+}
+
+template <typename T>
+bool LinkedList<T>::putAfter(T item, T newItem)
+{
+  const auto nodeOpt{findNode(item)};
+  if (!nodeOpt.has_value())
+  {
+    return false;
+  }
+
+  auto* node{*nodeOpt};
+  auto* next{node->next};
+  auto* newNode{new DoubleNode<T>{std::move(newItem), next, node}};
+
+  node->next = newNode;
+  if (next != nullptr)
+  {
+    next->prev = newNode;
+  }
+  else
+  {
+    m_right = newNode;
+  }
+  ++m_size;
+  return true;
 }
 
 template <typename T>

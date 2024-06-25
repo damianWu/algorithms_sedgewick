@@ -167,18 +167,110 @@ TEST_F(LinkedListTest, shouldIgnoreAndNotRemoveFrontElementWhenListIsEmpty)
   ASSERT_EQ(expectedNullptrIter, std::end(list));
 }
 
-TEST_F(LinkedListTest, shouldNotPutNewItemBeforeWhenItemNotExists)
+// [x] shouldNotPutNewNodeAfterWhenNodeNotFound
+// [x] shouldNotPutNewNodeAfterWhenListIsEmpty
+// [x] shouldPutNewNodeAfterBetweenTwoNodes
+// [x] shouldPutNewNodeAfterWhenOnlyOneNodeExists
+// [/] shouldPutNewNodeAfterWhenMultipleNodesExists
+
+TEST_F(LinkedListTest, shouldNotPutNewNodeAfterWhenNodeNotFound)
 {
   constexpr int16_t expectedSize{1};
   const std::string item1{"item1"};
 
   list.pushRight(item1);
 
-  ASSERT_EQ(false, list.putBefore("asdaaa", "newItem"));
+  ASSERT_EQ(false, list.putAfter("item567", "newItem"));
   ASSERT_EQ(expectedSize, list.size());
 }
 
-TEST_F(LinkedListTest, shouldNotPutNewNodeBeforeWhenZeroNodesExists)
+TEST_F(LinkedListTest, shouldNotPutNewNodeAfterWhenListIsEmpty)
+{
+  constexpr int16_t expectedSize{0};
+
+  ASSERT_EQ(false, list.putAfter("item567", "newItem"));
+  ASSERT_EQ(expectedSize, list.size());
+}
+
+TEST_F(LinkedListTest, shouldPutNewNodeAfterBetweenTwoNodes)
+{
+  constexpr int16_t expectedSize{3};
+  const std::string item1{"item1"};
+  const std::string item2{"item2"};
+  const std::string newItem{"newItem"};
+
+  list.pushRight(item1);
+  list.pushRight(item2);
+
+  ASSERT_TRUE(list.putAfter(item1, newItem));
+
+  ASSERT_EQ(item1, list.front());
+  ASSERT_EQ(item2, list.back());
+
+  ASSERT_EQ(item1, std::begin(list)->item);
+  ASSERT_EQ(newItem, (std::begin(list) + 1)->item);
+  ASSERT_EQ(item2, (std::begin(list) + 2)->item);
+
+  ASSERT_EQ(expectedSize, list.size());
+}
+
+TEST_F(LinkedListTest, shouldPutNewNodeAfterWhenOnlyOneNodeExists)
+{
+  constexpr int16_t expectedSize{2};
+  const std::string item1{"item1"};
+  const std::string newItem{"newItem"};
+
+  list.pushLeft(item1);
+
+  ASSERT_TRUE(list.putAfter(item1, newItem));
+
+  ASSERT_EQ(item1, list.front());
+  ASSERT_EQ(newItem, list.back());
+
+  ASSERT_EQ(item1, std::begin(list)->item);
+  ASSERT_EQ(newItem, (std::begin(list) + 1)->item);
+
+  ASSERT_EQ(expectedSize, list.size());
+}
+
+TEST_F(LinkedListTest, shouldPutNewNodeAfterWhenMultipleNodesExists)
+{
+  constexpr int16_t expectedSize{8};
+  const std::string item1{"item1"};
+  const std::string item2{"item2"};
+  const std::string item3{"item3"};
+  const std::string item4{"item4"};
+  const std::string item5{"item5"};
+  const std::string item6{"item6"};
+  const std::string item7{"item7"};
+  const std::string newItem{"newItem"};
+
+  list.pushLeft(item4);
+  list.pushLeft(item3);
+  list.pushLeft(item2);
+  list.pushLeft(item1);
+  list.pushRight(item5);
+  list.pushRight(item6);
+  list.pushRight(item7);
+
+  list.putAfter(item4, newItem);
+
+  ASSERT_EQ(item1, list.front());
+  ASSERT_EQ(item7, list.back());
+
+  ASSERT_EQ(item1, std::begin(list)->item);
+  ASSERT_EQ(item2, (std::begin(list) + 1)->item);
+  ASSERT_EQ(item3, (std::begin(list) + 2)->item);
+  ASSERT_EQ(item4, (std::begin(list) + 3)->item);
+  ASSERT_EQ(newItem, (std::begin(list) + 4)->item);
+  ASSERT_EQ(item5, (std::begin(list) + 5)->item);
+  ASSERT_EQ(item6, (std::begin(list) + 6)->item);
+  ASSERT_EQ(item7, (std::begin(list) + 7)->item);
+
+  ASSERT_EQ(expectedSize, list.size());
+}
+
+TEST_F(LinkedListTest, shouldNotPutNewNodeBeforeWhenListIsEmpty)
 {
   constexpr int16_t expectedSize{0};
   const Iterator<DoubleNode<ListItemType>> expectedBeginIterator{nullptr};
@@ -231,7 +323,7 @@ TEST_F(LinkedListTest, shouldPutNewNodeBeforeWhenOnlyOneNodeInList)
   ASSERT_EQ(expectedSize, list.size());
 }
 
-TEST_F(LinkedListTest, shouldPutNewNodeBeforeBetweenOnlyTwoExistingNodes)
+TEST_F(LinkedListTest, shouldPutNewNodeBeforeBetweenTwoExistingNodes)
 {
   constexpr int16_t expectedSize{3};
   const std::string item1{"item1"};
