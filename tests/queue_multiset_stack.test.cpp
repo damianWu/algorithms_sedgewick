@@ -11,30 +11,302 @@
 #include <string_view>
 #include <vector>
 
-// NOLINTNEXTLINE
 #include "ch1/ch1.hpp"
 
 namespace ch1
 {
 namespace double_linked_list
 {
-TEST(LinkedListTest, listShouldBeEmptyByDefault)
+struct LinkedListTest : public testing::Test
 {
-  LinkedList<std::string> list;
+  using ListItemType = std::string;
+  LinkedList<ListItemType> list{};
+};
 
+TEST_F(LinkedListTest, listShouldBeEmptyByDefault)
+{
   ASSERT_TRUE(list.isEmpty());
   ASSERT_EQ(0, list.size());
 }
 
-TEST(LinkedListTest, pushFrontShouldAddNewElementToFront)
+TEST_F(LinkedListTest, pushLeftShouldAddNewElementToFrontAndBackShouldPointTheSameValue)
 {
   constexpr auto expectedSize{1};
-  LinkedList<std::string> list;
- 
-  list.pushFront("item1");
+  const std::optional<std::string> item1{"item1"};
 
-  ASSERT_FALSE(list.isEmpty());
+  list.pushLeft(*item1);
+
+  ASSERT_EQ(item1, list.front());
+  ASSERT_EQ(item1, list.back());
   ASSERT_EQ(expectedSize, list.size());
+  ASSERT_FALSE(list.isEmpty());
+}
+
+TEST_F(LinkedListTest, pushLeftShouldAdd2NewElementsToFrontAndBackShouldNotBeNull)
+{
+  constexpr auto expectedSize{2};
+  const std::optional<std::string> item1{"item1"};
+  const std::optional<std::string> item2{"item2"};
+
+  list.pushLeft(*item1);
+  list.pushLeft(*item2);
+
+  ASSERT_EQ(item2, list.front());
+  ASSERT_EQ(item1, list.back());
+  ASSERT_EQ(expectedSize, list.size());
+  ASSERT_FALSE(list.isEmpty());
+}
+
+TEST_F(LinkedListTest, pushLeftShouldAdd3NewElementsToFrontAndBackShouldNotBeNull)
+{
+  constexpr auto expectedSize{3};
+  const std::optional<std::string> item1{"item1"};
+  const std::optional<std::string> item2{"item2"};
+  const std::optional<std::string> item3{"item3"};
+
+  list.pushLeft(*item1);
+  list.pushLeft(*item2);
+  list.pushLeft(*item3);
+
+  ASSERT_EQ(item3, list.front());
+  ASSERT_EQ(item1, list.back());
+  ASSERT_EQ(expectedSize, list.size());
+  ASSERT_FALSE(list.isEmpty());
+}
+
+TEST_F(LinkedListTest, iteratorShouldIterateCorrectlyThroughAllElements)
+{
+  constexpr auto expectedSize{4};
+  const std::array<std::string, 4> items{"item1", "item2", "item3", "item4"};
+
+  list.pushLeft(items[2]);
+  list.pushLeft(items[1]);
+  list.pushLeft(items[0]);
+  list.pushRight(items[3]);
+
+  auto itemsIt{std::begin(items)};
+
+  std::for_each(std::begin(list), std::end(list),
+                [&itemsIt](const auto& i)
+                {
+                  if (i.item != *itemsIt)
+                  {
+                    FAIL() << "lhs=" << i.item << ", rhs=" << *itemsIt << ", Items should be equal";
+                  }
+                  ++itemsIt;
+                });
+  ASSERT_EQ(expectedSize, list.size());
+}
+
+TEST_F(LinkedListTest, iteratorShouldIterateCorrectlyThroughAllElementsForward)
+{
+  constexpr auto expectedSize{4};
+  std::array<std::string, 4> items{"item1", "item2", "item3", "item4"};
+
+  list.pushRight(items[0]);
+  list.pushRight(items[1]);
+  list.pushRight(items[2]);
+  list.pushRight(items[3]);
+
+  auto itemsIt{std::begin(items)};
+
+  std::for_each(std::begin(list), std::end(list),
+                [&itemsIt](const auto& i)
+                {
+                  if (i.item != *itemsIt)
+                  {
+                    FAIL() << "lhs=" << i.item << ", rhs=" << *itemsIt << ", Items should be equal";
+                  }
+                  ++itemsIt;
+                });
+  ASSERT_EQ(expectedSize, list.size());
+}
+
+TEST_F(LinkedListTest, shouldRemoveFrontElement)
+{
+  constexpr int16_t expectedListSize{1};
+
+  const std::string item1{"item1"};
+  const std::string item2{"item2"};
+  const std::string item3{"item3"};
+
+  list.pushLeft(item1);
+  list.pushLeft(item2);
+  list.pushLeft(item3);
+
+  list.deleteFront();
+  ASSERT_EQ(list.front().value(), item2);
+
+  list.deleteFront();
+  ASSERT_EQ(list.front().value(), item1);
+
+  ASSERT_EQ(expectedListSize, list.size());
+}
+
+TEST_F(LinkedListTest, shouldIgnoreAndNotRemoveFrontElementWhenListIsEmpty)
+{
+  constexpr int16_t expectedListSize{0};
+  Iterator<DoubleNode<std::string>> expectedNullptrIter{nullptr};
+
+  const std::string item1{"item1"};
+  const std::string item2{"item2"};
+  const std::string item3{"item3"};
+
+  list.pushLeft(item1);
+  list.pushLeft(item2);
+  list.pushLeft(item3);
+
+  list.deleteFront();
+  list.deleteFront();
+  list.deleteFront();
+  list.deleteFront();
+  list.deleteFront();
+
+  ASSERT_EQ(expectedListSize, list.size());
+  ASSERT_EQ(expectedNullptrIter, std::begin(list));
+  ASSERT_EQ(expectedNullptrIter, std::end(list));
+}
+
+TEST_F(LinkedListTest, shouldNotPutNewItemBeforeWhenItemNotExists)
+{
+  constexpr int16_t expectedSize{1};
+  const std::string item1{"item1"};
+
+  list.pushRight(item1);
+
+  ASSERT_EQ(false, list.putBefore("asdaaa", "newItem"));
+  ASSERT_EQ(expectedSize, list.size());
+}
+
+TEST_F(LinkedListTest, shouldNotPutNewNodeBeforeWhenZeroNodesExists)
+{
+  constexpr int16_t expectedSize{0};
+  const Iterator<DoubleNode<ListItemType>> expectedBeginIterator{nullptr};
+  const Iterator<DoubleNode<ListItemType>> expectedEndIterator{nullptr};
+  const std::string newItem{"newItem"};
+
+  ASSERT_FALSE(list.putBefore("node73", newItem));
+
+  ASSERT_EQ(expectedBeginIterator, std::begin(list));
+  ASSERT_EQ(expectedEndIterator, std::end(list));
+  ASSERT_EQ(expectedSize, list.size());
+}
+
+TEST_F(LinkedListTest, shouldNotPutNewNodeBeforeWhenNodeNotFound)
+{
+  constexpr int16_t expectedSize{3};
+  const std::string newItem{"newItem"};
+  const std::string item1{"item1"};
+  const std::string item2{"item2"};
+  const std::string item3{"item3"};
+
+  list.pushLeft(item3);
+  list.pushLeft(item2);
+  list.pushLeft(item1);
+
+  ASSERT_FALSE(list.putBefore("node912", newItem));
+
+  ASSERT_EQ(item1, std::begin(list)->item);
+  ASSERT_EQ(item2, (std::begin(list) + 1)->item);
+  ASSERT_EQ(item3, (std::begin(list) + 2)->item);
+  ASSERT_EQ(expectedSize, list.size());
+}
+
+TEST_F(LinkedListTest, shouldPutNewNodeBeforeWhenOnlyOneNodeInList)
+{
+  constexpr int16_t expectedSize{2};
+  const std::string item1{"item1"};
+  const std::string newItem{"newItem"};
+
+  list.pushRight(item1);
+
+  ASSERT_TRUE(list.putBefore(item1, newItem));
+
+  ASSERT_EQ(item1, list.back().value());
+  ASSERT_EQ(newItem, list.front().value());
+
+  ASSERT_EQ(newItem, std::begin(list)->item);
+  ASSERT_EQ(item1, (++std::begin(list))->item);
+
+  ASSERT_EQ(expectedSize, list.size());
+}
+
+TEST_F(LinkedListTest, shouldPutNewNodeBeforeBetweenOnlyTwoExistingNodes)
+{
+  constexpr int16_t expectedSize{3};
+  const std::string item1{"item1"};
+  const std::string item2{"item2"};
+  const std::string newItem{"newItem"};
+
+  list.pushRight(item1);
+  list.pushRight(item2);
+
+  ASSERT_TRUE(list.putBefore(item2, newItem));
+
+  ASSERT_EQ(item1, list.front());
+  ASSERT_EQ(item2, list.back());
+
+  ASSERT_EQ(item1, std::begin(list)->item);
+  ASSERT_EQ(newItem, (++std::begin(list))->item);
+  ASSERT_EQ(item2, (++(++std::begin(list)))->item);
+
+  ASSERT_EQ(expectedSize, list.size());
+}
+
+TEST_F(LinkedListTest, shouldPutNewNodeBeforeBetweenManyExistingNodes)
+{
+  constexpr int16_t expectedSize{8};
+  const std::string item1{"item1"};
+  const std::string item2{"item2"};
+  const std::string item3{"item3"};
+  const std::string item4{"item4"};
+  const std::string item5{"item5"};
+  const std::string item6{"item6"};
+  const std::string item7{"item7"};
+  const std::string newItem{"newItem"};
+
+  list.pushLeft(item4);
+  list.pushLeft(item3);
+  list.pushLeft(item2);
+  list.pushLeft(item1);
+  list.pushRight(item5);
+  list.pushRight(item6);
+  list.pushRight(item7);
+
+  list.putBefore(item5, newItem);
+
+  ASSERT_EQ(item1, list.front());
+  ASSERT_EQ(item7, list.back());
+
+  ASSERT_EQ(item1, std::begin(list)->item);
+  ASSERT_EQ(item2, (std::begin(list) + 1)->item);
+  ASSERT_EQ(item3, (std::begin(list) + 2)->item);
+  ASSERT_EQ(item4, (std::begin(list) + 3)->item);
+  ASSERT_EQ(newItem, (std::begin(list) + 4)->item);
+  ASSERT_EQ(item5, (std::begin(list) + 5)->item);
+  ASSERT_EQ(item6, (std::begin(list) + 6)->item);
+  ASSERT_EQ(item7, (std::begin(list) + 7)->item);
+
+  ASSERT_EQ(expectedSize, list.size());
+}
+
+TEST_F(LinkedListTest, shouldRemoveLastElement)
+{
+  constexpr int16_t expectedListSize{2};
+
+  const std::string item1{"item1"};
+  const std::string item2{"item2"};
+  const std::string item3{"item3"};
+
+  list.pushLeft(item1);
+  list.pushLeft(item2);
+  list.pushLeft(item3);
+
+  list.deleteBack();
+
+  ASSERT_EQ(list.front().value(), item3);
+  ASSERT_EQ(list.back().value(), item2);
+  ASSERT_EQ(expectedListSize, list.size());
 }
 }  // namespace double_linked_list
 
@@ -52,7 +324,7 @@ TEST(QueueTest, addNewElementToQueue)
   ASSERT_FALSE(queue.isEmpty());
 }
 
-TEST(QueuqeTest, addNewElementsToQueue)
+TEST(QueueTest, addNewElementsToQueue)
 {
   constexpr auto expectedSize{4};
   QueueImpl<std::string> queue;
@@ -81,8 +353,8 @@ TEST(QueueTest, removeElementFromQueue)
 
   ASSERT_EQ(expectedSizeAfterPush, queue.size());
 
-  const std::string_view item{queue.dequeue()};
-  const std::string_view emptyItem{queue.dequeue()};
+  const std::string item{queue.dequeue()};
+  const std::string emptyItem{queue.dequeue()};
   queue.dequeue();
   queue.dequeue();
 
@@ -431,7 +703,7 @@ TEST_F(LinkedListStackTest, pushItemToStack)
 {
   constexpr std::size_t expectedSize{1};
 
-  stack.push(std::string{"push_test"});
+  stack.push("push_test");
 
   ASSERT_EQ(expectedSize, stack.size());
   ASSERT_FALSE(stack.isEmpty());
@@ -441,10 +713,10 @@ TEST_F(LinkedListStackTest, pushItemsToStack)
 {
   constexpr std::size_t expectedSize{4};
 
-  stack.push(std::string{"push_test1"});
-  stack.push(std::string{"push_test2"});
-  stack.push(std::string{"push_test3"});
-  stack.push(std::string{"push_test4"});
+  stack.push("push_test1");
+  stack.push("push_test2");
+  stack.push("push_test3");
+  stack.push("push_test4");
 
   ASSERT_EQ(expectedSize, stack.size());
   ASSERT_FALSE(stack.isEmpty());

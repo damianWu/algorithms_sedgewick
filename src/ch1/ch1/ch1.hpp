@@ -2,6 +2,9 @@
 #ifndef SRC_CH1_CH1_CH1_HPP_
 #define SRC_CH1_CH1_CH1_HPP_
 
+#include <bits/chrono.h>
+#include <fmt/core.h>
+
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -10,7 +13,7 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
-#include <memory_resource>
+#include <optional>
 #include <string>
 #include <utility>
 
@@ -19,30 +22,44 @@
 namespace ch1
 {
 using size_t = std::size_t;
+
 namespace it
 {
 template <typename Item>
-struct Node
+struct SingleNode
 {
   Item item{};
-  Node* next{};
-};
-
-template <typename T>
-struct DoubleNode
-{
-  T item{};
-  DoubleNode* next{};
-  DoubleNode* prev{};
+  SingleNode* next{};
 };
 
 template <typename Item>
+struct DoubleNode
+{
+  Item item{};
+  DoubleNode<Item>* next{};
+  DoubleNode<Item>* prev{};
+
+  bool operator==(const DoubleNode& second)
+  {
+    return item == second.item && next == second.next && prev == second.prev;
+  }
+
+  bool operator!=(const DoubleNode& second) { return !(*this == second); }
+};
+
+template <typename NodeType>
 struct Iterator
 {
-  explicit Iterator(Node<Item>* ptr) : m_ptr(ptr) {}
+  using iterator_category = std::forward_iterator_tag;
+  using difference_type = std::ptrdiff_t;
+  using value_type = NodeType;
+  using pointer = NodeType*;
+  using reference = NodeType&;
 
-  Node<Item>& operator*() const { return *m_ptr; }
-  Node<Item>* operator->() { return m_ptr; }
+  explicit Iterator(NodeType* ptr) : m_ptr(ptr) {}
+
+  reference operator*() const { return *m_ptr; }
+  pointer operator->() { return m_ptr; }
 
   // Prefix increment
   Iterator& operator++()
@@ -59,64 +76,28 @@ struct Iterator
     return tmp;
   }
 
+  Iterator& operator+(uint16_t noOfSteps)
+  {
+    for (uint16_t i{}; i < noOfSteps; ++i)
+    {
+      ++*this;
+    }
+    return *this;
+  }
+
   friend bool operator==(const Iterator& a, const Iterator& b) { return a.m_ptr == b.m_ptr; }
-  friend bool operator!=(const Iterator& a, const Iterator& b) { return a.m_ptr != b.m_ptr; }
+  friend bool operator!=(const Iterator& a, const Iterator& b) { return !(a.m_ptr == b.m_ptr); }
 
 private:
-  Node<Item>* m_ptr;
+  pointer m_ptr;
 };
 
-template <typename T>
-struct BiIterator
-{
-  explicit BiIterator(Node<T>* ptr) : m_ptr(ptr) {}
-
-  DoubleNode<T>& operator*() const { return *m_ptr; }
-  Node<T>* operator->() { return m_ptr; }
-
-  // Prefix decrement
-  BiIterator& operator--()
-  {
-    // TODO(@damianWu) what if it is nullptr?
-    m_ptr = m_ptr->prev;
-    return *this;
-  }
-
-  // Prefix decrement
-  BiIterator operator--(int)  // NOLINT
-  {
-    // TODO(@damianWu) what if it is nullptr?
-    BiIterator tmp{m_ptr};
-    --(*this);
-    return tmp;
-  }
-
-  // Prefix increment
-  BiIterator& operator++()
-  {
-    m_ptr = m_ptr->next;
-    return *this;
-  }
-
-  // Postfix increment
-  BiIterator operator++(int)  // NOLINT
-  {
-    BiIterator tmp{m_ptr};
-    ++(*this);
-    return tmp;
-  }
-
-  friend bool operator==(const BiIterator& a, const BiIterator& b) { return a.m_ptr == b.m_ptr; }
-  friend bool operator!=(const BiIterator& a, const BiIterator& b) { return a.m_ptr != b.m_ptr; }
-
-private:
-  DoubleNode<T>* m_ptr;
-};
 }  // namespace it
 
 namespace double_linked_list
 {
 using it::DoubleNode;
+using it::Iterator;
 
 template <typename T>
 class LinkedList
@@ -131,19 +112,136 @@ public:
 
   [[nodiscard]] constexpr size_t size() const;
   [[nodiscard]] constexpr bool isEmpty() const;
+  [[nodiscard]] std::optional<T> front() const;
+  [[nodiscard]] std::optional<T> back() const;
+
+  Iterator<DoubleNode<T>> begin() { return Iterator<DoubleNode<T>>{m_left}; }
+  Iterator<DoubleNode<T>> end() { return Iterator<DoubleNode<T>>{nullptr}; }
 
   void clear();
-  void pushFront(T item);
-  void pushBack(T item);
+  void pushLeft(T item);
+  void pushRight(T item);
+  bool putBefore(T item, T newItem);
+  bool putAfter(T item);
+
+  // [/] wstawiania za danym węzłem
+  // [ ] usuwania danego węzła.
+  void deleteFront();
+  void deleteBack();
 
 private:
-  DoubleNode<T> m_first;
-  DoubleNode<T> m_last;
+  [[nodiscard]] bool putFirst(T&& item);
+  [[nodiscard]] std::optional<DoubleNode<T>*> findNode(const T& item);
+
+  DoubleNode<T>* m_left{};
+  DoubleNode<T>* m_right{};
 
   size_t m_size{};
 };
 
-// [ ] Add DoubleIterator (needed for deletion of elements)
+template <typename T>
+std::optional<DoubleNode<T>*> LinkedList<T>::findNode(const T& item)
+{
+  auto it{std::find_if(begin(), end(), [&item](auto it) { return it.item == item; })};
+  return (it == end()) ? std::nullopt : std::make_optional(&*it);
+}
+
+template <typename T>
+bool LinkedList<T>::putBefore(T item, T newItem)
+{
+  auto nodeOpt{findNode(item)};
+  if (!nodeOpt.has_value())
+  {
+    return false;
+  }
+
+  auto* const node{nodeOpt.value()};
+  auto* const prev{node->prev};
+  auto* const newNode{new DoubleNode<T>{std::move(newItem), node, prev}};
+
+  node->prev = newNode;
+
+  if (prev != nullptr)
+  {
+    prev->next = newNode;
+  }
+  else  // Put before leftmost (new leftmost)
+  {
+    m_left = newNode;
+  }
+
+  ++m_size;
+  return true;
+}
+
+template <typename T>
+void LinkedList<T>::deleteBack()
+{
+  if (isEmpty())
+  {
+    return;
+  }
+
+  if (m_left == m_right)
+  {
+    m_left = nullptr;
+  }
+
+  auto* prev{m_right->prev};
+  delete m_right;
+
+  m_right = prev;
+  if (m_right != nullptr)
+  {
+    m_right->next = nullptr;
+  }
+  --m_size;
+}
+
+template <typename T>
+void LinkedList<T>::deleteFront()
+{
+  if (isEmpty())
+  {
+    return;
+  }
+
+  if (m_left == m_right)
+  {
+    m_right = nullptr;
+  }
+
+  auto* next{m_left->next};
+  delete m_left;
+
+  m_left = next;
+  if (m_left != nullptr)
+  {
+    m_left->prev = nullptr;
+  }
+  --m_size;
+}
+
+template <typename T>
+std::optional<T> LinkedList<T>::front() const
+{
+  if (m_left == nullptr)
+  {
+    return {};
+  }
+  return {m_left->item};
+}
+
+template <typename T>
+std::optional<T> LinkedList<T>::back() const
+{
+  if (m_right == nullptr)
+  {
+    return {};
+  }
+  return {m_right->item};
+}
+
 template <typename T>
 void LinkedList<T>::clear()
 {
@@ -152,60 +250,72 @@ void LinkedList<T>::clear()
     return;
   }
 
-  for (DoubleNode<T> current{}; m_first.next != nullptr;)
+  for (DoubleNode<T>* tempNext{}; m_left->next != nullptr;)
   {
-    current = m_first++;
-    delete current;
+    tempNext = m_left->next;
+    delete m_left;
+    m_left = tempNext;
   }
-
-  if (m_last != nullptr)
-  {
-  }
+  delete m_left;
+  m_left = nullptr;
+  m_right = nullptr;
+  m_size = 0;
 }
 
 template <typename T>
 LinkedList<T>::~LinkedList()
 {
-  // clear();
+  clear();
 }
 
-// [x] How to connect first with last?
 template <typename T>
-void LinkedList<T>::pushFront(T item)
+inline bool LinkedList<T>::putFirst(T&& item)
 {
-  if (isEmpty())
+  // TODO(damianWu) Refactor - too complicated/too many dependencies
+  const auto isListEmpty{isEmpty()};
+  ++m_size;
+  if (isListEmpty)
   {
-    m_first = new DoubleNode<T>{std::move(item)};
+    m_left = new DoubleNode<T>{std::move(item)};
+    m_right = m_left;
+    return true;
+  }
+  return false;
+}
+
+template <typename T>
+void LinkedList<T>::pushLeft(T item)
+{
+  if (putFirst(std::move(item)))
+  {
     return;
   }
 
-  m_first.prev = new DoubleNode<T>{std::move(item)};
-  m_first.prev->next = m_first;
-  m_first = m_first.prev;
+  m_left->prev = new DoubleNode<T>{std::move(item)};
+  m_left->prev->next = m_left;
+  m_left = m_left->prev;
 
-  if (m_last == nullptr)
+  if (m_right == m_left)
   {
-    m_last = m_first.next;
+    m_right = m_left->next;
   }
 }
 
-// [x] How to connect last with first?
 template <typename T>
-void LinkedList<T>::pushBack(T item)
+void LinkedList<T>::pushRight(T item)
 {
-  if (isEmpty())
+  if (putFirst(std::move(item)))
   {
-    m_last = new DoubleNode<T>{std::move(item)};
     return;
   }
 
-  m_last.next = new DoubleNode{std::move(item)};
-  m_last.next.prev = m_last;
-  m_last = m_last.next;
+  m_right->next = new DoubleNode<T>{std::move(item)};
+  m_right->next->prev = m_right;
+  m_right = m_right->next;
 
-  if (m_first == nullptr)
+  if (m_left == m_right)
   {
-    m_first = m_last.prev;
+    m_left = m_right->prev;
   }
 }
 
@@ -226,7 +336,7 @@ template <typename T>
 namespace queue
 {
 using it::Iterator;
-using it::Node;
+using it::SingleNode;
 
 template <typename Item>
 struct Queue
@@ -246,8 +356,8 @@ struct Queue
   [[nodiscard]] virtual bool isEmpty() const = 0;
   [[nodiscard]] virtual std::size_t size() const = 0;
 
-  virtual Iterator<Item> begin() = 0;
-  virtual Iterator<Item> end() = 0;
+  virtual Iterator<SingleNode<Item>> begin() = 0;
+  virtual Iterator<SingleNode<Item>> end() = 0;
 };
 
 // Queue of type FIFO
@@ -266,12 +376,12 @@ public:
   [[nodiscard]] bool isEmpty() const override;
   [[nodiscard]] std::size_t size() const override;
 
-  Iterator<Item> begin() override { return Iterator<Item>(m_first); }
-  Iterator<Item> end() override { return Iterator<Item>(nullptr); }
+  Iterator<SingleNode<Item>> begin() override { return Iterator<SingleNode<Item>>(m_left); }
+  Iterator<SingleNode<Item>> end() override { return Iterator<SingleNode<Item>>(nullptr); }
 
 private:
-  Node<Item>* m_first{};
-  Node<Item>* m_last{};
+  SingleNode<Item>* m_left{};
+  SingleNode<Item>* m_right{};
 
   std::size_t m_size{};
 };
@@ -291,22 +401,22 @@ bool QueueImpl<Item>::remove(size_t k)
     return true;
   }
 
-  Iterator<Item> currentIt{begin()};
-  Iterator<Item> prevIt{currentIt};
+  Iterator<SingleNode<Item>> currentIt{begin()};
+  Iterator<SingleNode<Item>> prevIt{currentIt};
   for (size_t i{}; i < k; ++i)
   {
     prevIt = currentIt++;
   }
 
-  Node<Item>& prevNode{*prevIt};
-  const Node<Item>& currentNode{*currentIt};
+  SingleNode<Item>& prevNode{*prevIt};
+  const SingleNode<Item>& currentNode{*currentIt};
 
   prevNode.next = currentNode.next;
   delete &currentNode;
 
   if (size() - 1 == k)
   {
-    m_last = &prevNode;
+    m_right = &prevNode;
   }
   --m_size;
 
@@ -321,14 +431,15 @@ void QueueImpl<Item>::clear()
     return;
   }
 
-  for (Node<Item>* next{}; m_first->next != nullptr;)
+  for (SingleNode<Item>* next{}; m_left->next != nullptr;)
   {
-    next = m_first->next;
-    delete m_first;
-    m_first = next;
+    next = m_left->next;
+    delete m_left;
+    m_left = next;
   }
 
-  delete m_first;
+  delete m_left;
+  m_left = nullptr;
   m_size = 0;
 }
 
@@ -348,8 +459,8 @@ Item QueueImpl<Item>::dequeue()
 
   --m_size;
 
-  auto* const oldFirst{m_first};
-  m_first = m_first->next;
+  auto* const oldFirst{m_left};
+  m_left = m_left->next;
 
   const Item oldItem{std::move(oldFirst->item)};
   delete oldFirst;
@@ -360,17 +471,17 @@ Item QueueImpl<Item>::dequeue()
 template <typename Item>
 void QueueImpl<Item>::enqueue(Item item)
 {
-  auto oldLast{m_last};
-  m_last = new Node<Item>{std::move(item)};
+  auto oldLast{m_right};
+  m_right = new SingleNode<Item>{std::move(item)};
 
   ++m_size;
 
-  if (m_first == nullptr)
+  if (m_left == nullptr)
   {
-    m_first = m_last;
+    m_left = m_right;
     return;
   }
-  oldLast->next = m_last;
+  oldLast->next = m_right;
 }
 
 template <typename Item>
@@ -419,8 +530,8 @@ public:
   // TODO(damianWu) - to delete
   void dump()
   {
-    std::cout << "m_first=" << m_first << '\n';
-    std::cout << "m_firstFree=" << m_firstFree << '\n';
+    std::cout << "m_left=" << m_left << '\n';
+    std::cout << "m_leftFree=" << m_leftFree << '\n';
     std::cout << "m_onePastLast=" << m_onePastLast << '\n';
   }
 
@@ -434,9 +545,9 @@ private:
   static std::allocator<Item> ms_allocator;
   static std::allocator_traits<decltype(ms_allocator)> ms_allocatorTraits;
 
-  Item* m_first;
+  Item* m_left;
   Item* m_onePastLast;
-  Item* m_firstFree;
+  Item* m_leftFree;
 
   static constexpr int16_t m_extraAllocFactor{2};
 };
@@ -449,28 +560,28 @@ std::allocator_traits<decltype(Stack<Item>::ms_allocator)> Stack<Item>::ms_alloc
 
 template <typename Item>
 Stack<Item>::Stack(size_t capacity)
-    : m_first{ms_allocatorTraits.allocate(ms_allocator, capacity)},
-      m_onePastLast{m_first + capacity},
-      m_firstFree{m_first}
+    : m_left{ms_allocatorTraits.allocate(ms_allocator, capacity)},
+      m_onePastLast{m_left + capacity},
+      m_leftFree{m_left}
 {
 }
 
 template <typename Item>
 Stack<Item>::~Stack()
 {
-  free(m_first, m_firstFree, m_onePastLast - m_first);
+  free(m_left, m_leftFree, m_onePastLast - m_left);
 }
 
 template <typename Item>
 [[nodiscard]] inline std::ptrdiff_t Stack<Item>::size() const
 {
-  return m_firstFree - m_first;
+  return m_leftFree - m_left;
 }
 
 template <typename Item>
 [[nodiscard]] inline std::ptrdiff_t Stack<Item>::capacity() const
 {
-  return m_onePastLast - m_first;
+  return m_onePastLast - m_left;
 }
 template <typename Item>
 Item Stack<Item>::peek() const
@@ -479,24 +590,24 @@ Item Stack<Item>::peek() const
   {
     return {};
   }
-  return *(m_firstFree - 1);
+  return *(m_leftFree - 1);
 }
 
 template <typename Item>
 void Stack<Item>::push(Item item)
 {
-  if (m_firstFree == m_onePastLast)
+  if (m_leftFree == m_onePastLast)
   {
     reallocate();
   }
-  ms_allocatorTraits.construct(ms_allocator, m_firstFree++, std::move(item));
+  ms_allocatorTraits.construct(ms_allocator, m_leftFree++, std::move(item));
 }
 
 template <typename Item>
 void Stack<Item>::reallocate()
 {
-  auto* const prevFirstElement{m_first};
-  auto* const prevFirstFreeElement{m_firstFree};
+  auto* const prevFirstElement{m_left};
+  auto* const prevFirstFreeElement{m_leftFree};
   auto const noOfElToDeallocate{m_onePastLast - prevFirstElement};
 
   allocate(prevFirstElement, prevFirstFreeElement);
@@ -507,9 +618,9 @@ template <typename Item>
 void Stack<Item>::allocate(iterator first, iterator firstFree)
 {
   const size_t newCapacity{calculateNewCapacity()};
-  m_first = ms_allocatorTraits.allocate(ms_allocator, newCapacity);
-  m_onePastLast = m_first + newCapacity;
-  m_firstFree = std::uninitialized_move(first, firstFree, m_first);
+  m_left = ms_allocatorTraits.allocate(ms_allocator, newCapacity);
+  m_onePastLast = m_left + newCapacity;
+  m_leftFree = std::uninitialized_move(first, firstFree, m_left);
 }
 
 template <typename Item>
@@ -535,10 +646,10 @@ template <typename Item>
 Item Stack<Item>::pop()
 {
   Item item{};
-  if (m_firstFree != nullptr && m_firstFree != m_first)
+  if (m_leftFree != nullptr && m_leftFree != m_left)
   {
-    item = *(m_firstFree - 1);
-    ms_allocatorTraits.destroy(ms_allocator, --m_firstFree);
+    item = *(m_leftFree - 1);
+    ms_allocatorTraits.destroy(ms_allocator, --m_leftFree);
     // TODO(damianWu) - reduce capacity
     // if (capacity() >= 4 * size())
     // {
@@ -557,48 +668,48 @@ inline bool Stack<Item>::isEmpty() const
 template <typename Item>
 inline typename Stack<Item>::iterator Stack<Item>::begin() const
 {
-  return m_first;
+  return m_left;
 }
 
 // TODO(damianWu) - how to improve this (using aliases)?
 template <typename Item>
 const Item* Stack<Item>::cbegin() const
 {
-  return m_first;
+  return m_left;
 }
 
 template <typename Item>
 inline typename Stack<Item>::iterator Stack<Item>::end() const
 {
-  return m_firstFree;
+  return m_leftFree;
 }
 
 // TODO(damianWu) - how to improve this?
 template <typename Item>
 typename Stack<Item>::iterator Stack<Item>::cend() const
 {
-  return const_cast<iterator>(m_firstFree);  // TODO(damianWu) - It is incorrect.
+  return const_cast<iterator>(m_leftFree);  // TODO(damianWu) - It is incorrect.
 }
 
 // Points on the first free element
 template <typename Item>
 std::reverse_iterator<typename Stack<Item>::iterator> Stack<Item>::rbegin()
 {
-  return std::reverse_iterator<Stack<Item>::iterator>(m_firstFree);
+  return std::reverse_iterator<Stack<Item>::iterator>(m_leftFree);
 }
 
 // Points on the first element
 template <typename Item>
 std::reverse_iterator<typename Stack<Item>::iterator> Stack<Item>::rend()
 {
-  return std::reverse_iterator<Stack<Item>::iterator>(m_first);
+  return std::reverse_iterator<Stack<Item>::iterator>(m_left);
 }
 }  // namespace efficient_stack
 
 namespace linked_list_stack
 {
 using it::Iterator;
-using it::Node;
+using it::SingleNode;
 
 // Queue of type LIFO
 template <typename Item>
@@ -620,11 +731,11 @@ public:
   void push(Item);
   void clear();
 
-  Iterator<Item> begin() const { return Iterator<Item>{m_first}; }
-  Iterator<Item> end() const { return Iterator<Item>{nullptr}; }
+  Iterator<SingleNode<Item>> begin() const { return Iterator<SingleNode<Item>>{m_left}; }
+  Iterator<SingleNode<Item>> end() const { return Iterator<SingleNode<Item>>{nullptr}; }
 
 private:
-  Node<Item>* m_first{};
+  SingleNode<Item>* m_left{};
   std::size_t m_size{};
 };
 
@@ -652,10 +763,10 @@ Item Stack<Item>::pop()
   }
   --m_size;
 
-  const auto* const oldFirst{m_first};
+  const auto* const oldFirst{m_left};
   Item oldItem{oldFirst->item};
 
-  m_first = oldFirst->next;
+  m_left = oldFirst->next;
   delete oldFirst;
 
   return oldItem;
@@ -664,8 +775,8 @@ Item Stack<Item>::pop()
 template <typename Item>
 void Stack<Item>::push(Item item)
 {
-  auto* oldFirst{m_first};
-  m_first = new Node<Item>{std::move(item), oldFirst};
+  auto* oldFirst{m_left};
+  m_left = new SingleNode<Item>{std::move(item), oldFirst};
 
   ++m_size;
 }
