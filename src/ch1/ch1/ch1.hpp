@@ -100,15 +100,15 @@ using it::DoubleNode;
 using it::Iterator;
 
 template <typename T>
-class LinkedList
+class DoubleLinkedList
 {
 public:
-  LinkedList() = default;
-  LinkedList(const LinkedList&) = delete;
-  LinkedList(LinkedList&&) = delete;
-  LinkedList& operator=(LinkedList&&) = delete;
-  LinkedList& operator=(const LinkedList&) = delete;
-  ~LinkedList();
+  DoubleLinkedList() = default;
+  DoubleLinkedList(const DoubleLinkedList&) = delete;
+  DoubleLinkedList(DoubleLinkedList&&) = delete;
+  DoubleLinkedList& operator=(DoubleLinkedList&&) = delete;
+  DoubleLinkedList& operator=(const DoubleLinkedList&) = delete;
+  ~DoubleLinkedList();
 
   [[nodiscard]] constexpr size_t size() const;
   [[nodiscard]] constexpr bool isEmpty() const;
@@ -123,9 +123,8 @@ public:
   void pushRight(T item);
   bool putBefore(T item, T newItem);
   bool putAfter(T item, T newItem);
+  bool remove(const T& item);
 
-  // [/] wstawiania za danym węzłem
-  // [ ] usuwania danego węzła.
   void deleteFront();
   void deleteBack();
 
@@ -140,14 +139,54 @@ private:
 };
 
 template <typename T>
-std::optional<DoubleNode<T>*> LinkedList<T>::findNode(const T& item)
+bool DoubleLinkedList<T>::remove(const T& item)
 {
-  auto it{std::find_if(begin(), end(), [&item](auto it) { return it.item == item; })};
-  return (it == end()) ? std::nullopt : std::make_optional(&*it);
+  auto nodeOpt{findNode(item)};
+  if (!nodeOpt.has_value())
+  {
+    return false;
+  }
+
+  auto* node{nodeOpt.value()};
+  // Get neighbors
+  auto prev{node->prev};
+  auto next{node->next};
+
+  // Handle left
+  if (prev != nullptr)
+  {
+    prev->next = next;
+  }
+  else
+  {
+    m_left = next;
+  }
+
+  // Handle right
+  if (next != nullptr)
+  {
+    next->prev = prev;
+  }
+  else
+  {
+    m_right = prev;
+  }
+
+  delete node;
+
+  --m_size;
+  return true;
 }
 
 template <typename T>
-bool LinkedList<T>::putAfter(T item, T newItem)
+std::optional<DoubleNode<T>*> DoubleLinkedList<T>::findNode(const T& item)
+{
+  const auto it{std::find_if(begin(), end(), [&item](auto it) { return it.item == item; })};
+  return it == end() ? std::nullopt : std::make_optional(&*it);
+}
+
+template <typename T>
+bool DoubleLinkedList<T>::putAfter(T item, T newItem)
 {
   const auto nodeOpt{findNode(item)};
   if (!nodeOpt.has_value())
@@ -173,7 +212,7 @@ bool LinkedList<T>::putAfter(T item, T newItem)
 }
 
 template <typename T>
-bool LinkedList<T>::putBefore(T item, T newItem)
+bool DoubleLinkedList<T>::putBefore(T item, T newItem)
 {
   auto nodeOpt{findNode(item)};
   if (!nodeOpt.has_value())
@@ -201,7 +240,7 @@ bool LinkedList<T>::putBefore(T item, T newItem)
 }
 
 template <typename T>
-void LinkedList<T>::deleteBack()
+void DoubleLinkedList<T>::deleteBack()
 {
   if (isEmpty())
   {
@@ -225,7 +264,7 @@ void LinkedList<T>::deleteBack()
 }
 
 template <typename T>
-void LinkedList<T>::deleteFront()
+void DoubleLinkedList<T>::deleteFront()
 {
   if (isEmpty())
   {
@@ -249,7 +288,7 @@ void LinkedList<T>::deleteFront()
 }
 
 template <typename T>
-std::optional<T> LinkedList<T>::front() const
+std::optional<T> DoubleLinkedList<T>::front() const
 {
   if (m_left == nullptr)
   {
@@ -259,7 +298,7 @@ std::optional<T> LinkedList<T>::front() const
 }
 
 template <typename T>
-std::optional<T> LinkedList<T>::back() const
+std::optional<T> DoubleLinkedList<T>::back() const
 {
   if (m_right == nullptr)
   {
@@ -269,7 +308,7 @@ std::optional<T> LinkedList<T>::back() const
 }
 
 template <typename T>
-void LinkedList<T>::clear()
+void DoubleLinkedList<T>::clear()
 {
   if (isEmpty())
   {
@@ -289,13 +328,13 @@ void LinkedList<T>::clear()
 }
 
 template <typename T>
-LinkedList<T>::~LinkedList()
+DoubleLinkedList<T>::~DoubleLinkedList()
 {
   clear();
 }
 
 template <typename T>
-inline bool LinkedList<T>::putFirst(T&& item)
+inline bool DoubleLinkedList<T>::putFirst(T&& item)
 {
   // TODO(damianWu) Refactor - too complicated/too many dependencies
   const auto isListEmpty{isEmpty()};
@@ -310,7 +349,7 @@ inline bool LinkedList<T>::putFirst(T&& item)
 }
 
 template <typename T>
-void LinkedList<T>::pushLeft(T item)
+void DoubleLinkedList<T>::pushLeft(T item)
 {
   if (putFirst(std::move(item)))
   {
@@ -328,7 +367,7 @@ void LinkedList<T>::pushLeft(T item)
 }
 
 template <typename T>
-void LinkedList<T>::pushRight(T item)
+void DoubleLinkedList<T>::pushRight(T item)
 {
   if (putFirst(std::move(item)))
   {
@@ -346,13 +385,13 @@ void LinkedList<T>::pushRight(T item)
 }
 
 template <typename T>
-[[nodiscard]] constexpr inline size_t LinkedList<T>::size() const
+[[nodiscard]] constexpr inline size_t DoubleLinkedList<T>::size() const
 {
   return m_size;
 }
 
 template <typename T>
-[[nodiscard]] constexpr inline bool LinkedList<T>::isEmpty() const
+[[nodiscard]] constexpr inline bool DoubleLinkedList<T>::isEmpty() const
 {
   return m_size == 0;
 }
