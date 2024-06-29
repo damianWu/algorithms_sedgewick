@@ -14,10 +14,8 @@
 #include <iterator>
 #include <memory>
 #include <optional>
-#include <string>
+#include <random>
 #include <utility>
-
-#include "ch1/ch1.hpp"
 
 namespace ch1
 {
@@ -30,7 +28,21 @@ struct SingleNode
 {
   Item item{};
   SingleNode* next{};
+
+  bool operator==(const SingleNode& node);
+  bool operator!=(const SingleNode& node);
 };
+
+template <typename Item>
+bool SingleNode<Item>::operator==(const SingleNode<Item>& node)
+{
+  return item == node.item && next == node.next;
+}
+template <typename Item>
+bool SingleNode<Item>::operator!=(const SingleNode<Item>& node)
+{
+  return !(*this == node);
+}
 
 template <typename Item>
 struct DoubleNode
@@ -69,14 +81,14 @@ struct Iterator
   }
 
   // Postfix increment
-  Iterator operator++(int)  // NOLINT
+  Iterator operator++(int)
   {
     Iterator tmp{m_ptr};
     ++(*this);
     return tmp;
   }
 
-  Iterator& operator+(uint16_t noOfSteps)
+  Iterator& operator+(size_t noOfSteps)
   {
     for (uint16_t i{}; i < noOfSteps; ++i)
     {
@@ -99,6 +111,7 @@ namespace double_linked_list
 using it::DoubleNode;
 using it::Iterator;
 
+// Ex 1.3.31
 template <typename T>
 class DoubleLinkedList
 {
@@ -119,8 +132,8 @@ public:
   Iterator<DoubleNode<T>> end() { return Iterator<DoubleNode<T>>{nullptr}; }
 
   void clear();
-  void pushLeft(T item);
-  void pushRight(T item);
+  void pushLeft(const T& item);
+  void pushRight(const T& item);
   bool putBefore(T item, T newItem);
   bool putAfter(T item, T newItem);
   bool remove(const T& item);
@@ -129,7 +142,7 @@ public:
   void deleteBack();
 
 private:
-  [[nodiscard]] bool putFirst(T&& item);
+  [[nodiscard]] bool putFirst(const T& item);
   [[nodiscard]] std::optional<DoubleNode<T>*> findNode(const T& item);
 
   DoubleNode<T>* m_left{};
@@ -334,14 +347,11 @@ DoubleLinkedList<T>::~DoubleLinkedList()
 }
 
 template <typename T>
-inline bool DoubleLinkedList<T>::putFirst(T&& item)
+inline bool DoubleLinkedList<T>::putFirst(const T& item)
 {
-  // TODO(damianWu) Refactor - too complicated/too many dependencies
-  const auto isListEmpty{isEmpty()};
-  ++m_size;
-  if (isListEmpty)
+  if (m_size - 1 == 0)
   {
-    m_left = new DoubleNode<T>{std::move(item)};
+    m_left = new DoubleNode<T>{item};
     m_right = m_left;
     return true;
   }
@@ -349,14 +359,16 @@ inline bool DoubleLinkedList<T>::putFirst(T&& item)
 }
 
 template <typename T>
-void DoubleLinkedList<T>::pushLeft(T item)
+void DoubleLinkedList<T>::pushLeft(const T& item)
 {
-  if (putFirst(std::move(item)))
+  ++m_size;
+
+  if (putFirst(item))
   {
     return;
   }
 
-  m_left->prev = new DoubleNode<T>{std::move(item)};
+  m_left->prev = new DoubleNode<T>{item};
   m_left->prev->next = m_left;
   m_left = m_left->prev;
 
@@ -367,14 +379,16 @@ void DoubleLinkedList<T>::pushLeft(T item)
 }
 
 template <typename T>
-void DoubleLinkedList<T>::pushRight(T item)
+void DoubleLinkedList<T>::pushRight(const T& item)
 {
-  if (putFirst(std::move(item)))
+  ++m_size;
+
+  if (putFirst(item))
   {
     return;
   }
 
-  m_right->next = new DoubleNode<T>{std::move(item)};
+  m_right->next = new DoubleNode<T>{item};
   m_right->next->prev = m_right;
   m_right = m_right->next;
 
@@ -413,9 +427,8 @@ struct Queue
   Queue& operator=(Queue&&) = delete;
   Queue& operator=(const Queue&) = delete;
 
-  virtual void enqueue(Item item) = 0;
   virtual Item dequeue() = 0;
-  virtual void clear() = 0;
+  virtual void enqueue(Item item) = 0;
   virtual bool remove(size_t k) = 0;
 
   [[nodiscard]] virtual bool isEmpty() const = 0;
@@ -423,33 +436,48 @@ struct Queue
 
   virtual Iterator<SingleNode<Item>> begin() = 0;
   virtual Iterator<SingleNode<Item>> end() = 0;
+
+protected:
+  std::size_t m_size{};
 };
 
 // Queue of type FIFO
 template <typename Item>
 class QueueImpl : public Queue<Item>
 {
+  using Queue<Item>::m_size;
+
 public:
   QueueImpl() = default;
   ~QueueImpl() override;
 
   void enqueue(Item item) override;
   Item dequeue() override;
-  void clear() override;
   bool remove(size_t k) override;
 
   [[nodiscard]] bool isEmpty() const override;
   [[nodiscard]] std::size_t size() const override;
+  Iterator<SingleNode<Item>> begin() override;
+  Iterator<SingleNode<Item>> end() override;
 
-  Iterator<SingleNode<Item>> begin() override { return Iterator<SingleNode<Item>>(m_left); }
-  Iterator<SingleNode<Item>> end() override { return Iterator<SingleNode<Item>>(nullptr); }
+  void clear();
 
 private:
   SingleNode<Item>* m_left{};
   SingleNode<Item>* m_right{};
-
-  std::size_t m_size{};
 };
+
+template <typename Item>
+Iterator<SingleNode<Item>> QueueImpl<Item>::begin()
+{
+  return Iterator<SingleNode<Item>>(m_left);
+}
+
+template <typename Item>
+Iterator<SingleNode<Item>> QueueImpl<Item>::end()
+{
+  return Iterator<SingleNode<Item>>(nullptr);
+}
 
 template <typename Item>
 bool QueueImpl<Item>::remove(size_t k)
@@ -560,6 +588,29 @@ template <typename Item>
 {
   return m_size;
 }
+
+// Ex 1.3.35
+template <typename T>
+struct RandomQueue : public QueueImpl<T>
+{
+  using QueueImpl<T>::size;
+  using QueueImpl<T>::begin;
+
+  T sample();
+};
+
+template <typename T>
+T RandomQueue<T>::sample()
+{
+  std::random_device random_device;
+  std::mt19937 random_engine(random_device());
+  std::uniform_int_distribution<size_t> distribution(0, size() - 1);
+
+  const size_t randomNumber = distribution(random_engine);
+
+  return (begin() + randomNumber)->item;
+}
+
 }  // namespace queue
 
 namespace efficient_stack
@@ -589,16 +640,10 @@ public:
   [[nodiscard]] iterator end() const;
   [[nodiscard]] std::reverse_iterator<iterator> rbegin();
   [[nodiscard]] std::reverse_iterator<iterator> rend();
-  [[nodiscard]] const Item* cbegin() const;
-  [[nodiscard]] iterator cend() const;
+  // [[nodiscard]] const Item* cbegin() const;  // TODO(damianWu) to implement
+  // [[nodiscard]] const Item* cend() const;    // TODO(damianWu) to implement
 
-  // TODO(damianWu) - to delete
-  void dump()
-  {
-    std::cout << "m_left=" << m_left << '\n';
-    std::cout << "m_leftFree=" << m_leftFree << '\n';
-    std::cout << "m_onePastLast=" << m_onePastLast << '\n';
-  }
+  void dump(std::ostream& ostream = std::cout) const;
 
 private:
   [[nodiscard]] std::ptrdiff_t capacity() const;
@@ -716,10 +761,10 @@ Item Stack<Item>::pop()
     item = *(m_leftFree - 1);
     ms_allocatorTraits.destroy(ms_allocator, --m_leftFree);
     // TODO(damianWu) - reduce capacity
-    // if (capacity() >= 4 * size())
-    // {
-    //    reallocate()
-    // }
+    /*  if (capacity() >= 4 * size())
+    {
+       reallocate()
+    } */
   }
   return item;
 }
@@ -736,24 +781,10 @@ inline typename Stack<Item>::iterator Stack<Item>::begin() const
   return m_left;
 }
 
-// TODO(damianWu) - how to improve this (using aliases)?
-template <typename Item>
-const Item* Stack<Item>::cbegin() const
-{
-  return m_left;
-}
-
 template <typename Item>
 inline typename Stack<Item>::iterator Stack<Item>::end() const
 {
   return m_leftFree;
-}
-
-// TODO(damianWu) - how to improve this?
-template <typename Item>
-typename Stack<Item>::iterator Stack<Item>::cend() const
-{
-  return const_cast<iterator>(m_leftFree);  // TODO(damianWu) - It is incorrect.
 }
 
 // Points on the first free element
@@ -768,6 +799,14 @@ template <typename Item>
 std::reverse_iterator<typename Stack<Item>::iterator> Stack<Item>::rend()
 {
   return std::reverse_iterator<Stack<Item>::iterator>(m_left);
+}
+
+template <typename Item>
+void Stack<Item>::dump(std::ostream& ostream) const
+{
+  ostream << "m_left=" << m_left << '\n';
+  ostream << "m_leftFree=" << m_leftFree << '\n';
+  ostream << "m_onePastLast=" << m_onePastLast << '\n';
 }
 }  // namespace efficient_stack
 
@@ -862,36 +901,7 @@ template <typename Item>
 
 namespace homework
 {
-bool ex1_3_5(std::string_view input)
-{
-  ch1::efficient_stack::Stack<char> opening_parenthesis;
-
-  const std::string open{"[({"};
-  const std::string close{"])}"};
-
-  for (const auto c : input)
-  {
-    if (open.contains(c))
-    {
-      opening_parenthesis.push(c);
-    }
-    else if (close.contains(c))
-    {
-      // c is closing bracket
-      // o is opening bracket
-      const auto o{opening_parenthesis.pop()};
-      if (open.find(o) != close.find(c))
-      {
-        return false;
-      }
-    }
-    else
-    {
-      return false;
-    }
-  }
-  return opening_parenthesis.isEmpty();
-}
+bool ex1_3_5(std::string_view input);
 
 }  // namespace homework
 

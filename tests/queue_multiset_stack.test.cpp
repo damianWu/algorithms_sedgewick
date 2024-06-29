@@ -685,6 +685,23 @@ TEST(QueueTest, removeWithSizeOne)
   ASSERT_EQ(expectedResult, queue.remove(0));
 }
 
+TEST(RandomQueueTest, shouldReturnRandomElement)
+{
+  const std::vector<std::string> items{"item1", "item2", "item3", "item4"};
+
+  RandomQueue<std::string> rq;
+  std::ranges::for_each(items, [&rq](const auto& item) { rq.enqueue(item); });
+
+  const auto randomElement{rq.sample()};
+
+  const auto it{std::find_if(std::begin(rq), std::end(rq),
+                             [&randomElement](auto& item) { return randomElement == item.item; })};
+
+  if (it == std::end(rq))
+  {
+    FAIL() << "Item not found in RandomQueue\n";
+  }
+}
 }  // namespace queue
 
 namespace efficient_stack
@@ -817,6 +834,7 @@ TEST(StackTest, stackShouldDoNothingWhenPopIfStackIsEmpty2)
 
   ASSERT_EQ(expectedSize, stack.size());
 }
+
 TEST(StackTest, shouldReturnValueWithoutModifyingStack)
 {
   constexpr std::string_view expectedItem{"item4"};
