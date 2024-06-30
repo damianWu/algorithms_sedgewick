@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -632,7 +633,7 @@ TEST(QueueTest, removeKthElement)
 
 TEST(QueueTest, removeOutOfBounds)
 {
-  constexpr auto expectedResult{false};
+  constexpr auto expectedResult{std::nullopt};
 
   QueueImpl<std::string> queue;
   queue.enqueue("item1");
@@ -643,7 +644,8 @@ TEST(QueueTest, removeOutOfBounds)
 
 TEST(QueueTest, removeLastElement)
 {
-  constexpr auto expectedResult{true};
+  const std::string lastItem{"item5"};
+  const std::optional<std::string> expectedResult{lastItem};
   constexpr auto expectedSize{4};
 
   QueueImpl<std::string> queue;
@@ -651,7 +653,7 @@ TEST(QueueTest, removeLastElement)
   queue.enqueue("item2");
   queue.enqueue("item3");
   queue.enqueue("item4");
-  queue.enqueue("item5");
+  queue.enqueue(lastItem);
 
   ASSERT_EQ(expectedResult, queue.remove(4));
   ASSERT_EQ(expectedSize, queue.size());
@@ -659,12 +661,13 @@ TEST(QueueTest, removeLastElement)
 
 TEST(QueueTest, removeFirstElement)
 {
-  constexpr auto expectedResult{true};
+  const std::string firstItem{"item1"};
+  const std::optional<std::string> expectedResult{firstItem};
   constexpr auto expectedSize{4};
   const std::string_view expectedBegin{"item2"};
 
   QueueImpl<std::string> queue;
-  queue.enqueue("item1");
+  queue.enqueue(firstItem);
   queue.enqueue("item2");
   queue.enqueue("item3");
   queue.enqueue("item4");
@@ -677,10 +680,11 @@ TEST(QueueTest, removeFirstElement)
 
 TEST(QueueTest, removeWithSizeOne)
 {
-  constexpr auto expectedResult{true};
+  const std::string firstItem{"item1"};
+  const std::optional<std::string> expectedResult{firstItem};
 
   QueueImpl<std::string> queue;
-  queue.enqueue("item1");
+  queue.enqueue(firstItem);
 
   ASSERT_EQ(expectedResult, queue.remove(0));
 }
@@ -931,7 +935,7 @@ TEST_F(DoubleLinkedListStackTest, popItemFromStack)
 TEST_F(DoubleLinkedListStackTest, popItemsFromStack)
 {
   constexpr std::size_t expectedFinalSize{0};
-  constexpr std::size_t expectedAftefPushSize{4};
+  constexpr std::size_t expectedAfterPushSize{4};
   const std::string expectedPopResult1{"push_test1"};
   const std::string expectedPopResult2{"push_test2"};
   const std::string expectedPopResult3{"push_test3"};
@@ -942,7 +946,7 @@ TEST_F(DoubleLinkedListStackTest, popItemsFromStack)
   stack.push(expectedPopResult3);
   stack.push(expectedPopResult4);
 
-  ASSERT_EQ(expectedAftefPushSize, stack.size());
+  ASSERT_EQ(expectedAfterPushSize, stack.size());
 
   const auto popResult4{stack.pop()};
   const auto popResult3{stack.pop()};
@@ -988,7 +992,7 @@ class Ex1_3_5Test : public ::testing::TestWithParam<std::pair<std::string, bool>
 TEST_P(Ex1_3_5Test, parenthesisTest)
 {
   const auto& [input, expectedResult]{GetParam()};
-  const auto result{::homework::ex1_3_5(input)};
+  const auto result{ex1_3_5(input)};
   ASSERT_EQ(expectedResult, result);
 }
 
@@ -999,6 +1003,8 @@ INSTANTIATE_TEST_SUITE_P(DISABLED_Ex1_3_5Test, Ex1_3_5Test,
                                          std::make_pair("[([])]{}{", false),
                                          std::make_pair("asddas", false)));
 
+TEST(ex1_3_37Test, ex1_3_37Test1) { ex1_3_37(7, 2); }
+TEST(ex1_3_37Test, ex1_3_37Test2) { ex1_3_37(7, 3); }
 }  // namespace homework
 
 }  // namespace ch1

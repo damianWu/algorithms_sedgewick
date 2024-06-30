@@ -106,6 +106,18 @@ private:
 
 }  // namespace it
 
+namespace cyclic_buffer
+{
+class RingBuffer
+{
+public:
+  explicit RingBuffer(std::size_t capacity) : m_capacity(capacity) {}
+
+private:
+  std::size_t m_capacity{};
+};
+}  // namespace cyclic_buffer
+
 namespace double_linked_list
 {
 using it::DoubleNode;
@@ -429,7 +441,7 @@ struct Queue
 
   virtual Item dequeue() = 0;
   virtual void enqueue(Item item) = 0;
-  virtual bool remove(size_t k) = 0;
+  virtual std::optional<Item> remove(size_t k) = 0;
 
   [[nodiscard]] virtual bool isEmpty() const = 0;
   [[nodiscard]] virtual std::size_t size() const = 0;
@@ -453,7 +465,7 @@ public:
 
   void enqueue(Item item) override;
   Item dequeue() override;
-  bool remove(size_t k) override;
+  std::optional<Item> remove(size_t k) override;
 
   [[nodiscard]] bool isEmpty() const override;
   [[nodiscard]] std::size_t size() const override;
@@ -480,18 +492,17 @@ Iterator<SingleNode<Item>> QueueImpl<Item>::end()
 }
 
 template <typename Item>
-bool QueueImpl<Item>::remove(size_t k)
+std::optional<Item> QueueImpl<Item>::remove(size_t k)
 {
   // If out of range
   if (k >= size())
   {
-    return false;
+    return std::nullopt;
   }
 
   if (size() == 1 || k == 0)
   {
-    dequeue();
-    return true;
+    return {dequeue()};
   }
 
   Iterator<SingleNode<Item>> currentIt{begin()};
@@ -503,6 +514,7 @@ bool QueueImpl<Item>::remove(size_t k)
 
   SingleNode<Item>& prevNode{*prevIt};
   const SingleNode<Item>& currentNode{*currentIt};
+  Item currentNodeItem{currentNode.item};
 
   prevNode.next = currentNode.next;
   delete &currentNode;
@@ -513,7 +525,7 @@ bool QueueImpl<Item>::remove(size_t k)
   }
   --m_size;
 
-  return true;
+  return {currentNodeItem};
 }
 
 template <typename Item>
@@ -742,7 +754,7 @@ void Stack<Item>::free(iterator first, iterator firstFree, std::ptrdiff_t noOfEl
     {
       ms_allocatorTraits.destroy(ms_allocator, --objectToDestroy);
     }
-    ms_allocatorTraits.deallocate(ms_allocator, first, noOfElToDeallocate);
+    ms_allocatorTraits.deallocate(ms_allocator, first, static_cast<size_t>(noOfElToDeallocate));
   }
 }
 
@@ -897,12 +909,11 @@ template <typename Item>
 }
 }  // namespace linked_list_stack
 
-}  // namespace ch1
-
 namespace homework
 {
 bool ex1_3_5(std::string_view input);
-
+void ex1_3_37(int32_t n, int32_t m);
 }  // namespace homework
+}  // namespace ch1
 
 #endif  // SRC_CH1_CH1_CH1_HPP_
