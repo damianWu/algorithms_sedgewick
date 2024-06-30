@@ -206,7 +206,7 @@ bool DoubleLinkedList<T>::remove(const T& item)
 template <typename T>
 std::optional<DoubleNode<T>*> DoubleLinkedList<T>::findNode(const T& item)
 {
-  const auto it{std::find_if(begin(), end(), [&item](auto it) { return it.item == item; })};
+  const auto it{std::find_if(begin(), end(), [&item](auto node) { return node.item == item; })};
   return it == end() ? std::nullopt : std::make_optional(&*it);
 }
 

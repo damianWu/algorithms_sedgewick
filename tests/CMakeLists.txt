@@ -28,7 +28,7 @@ target_link_libraries(
         gtest::gtest        # GTest libraries
 )
 
-set(gtest_filter "--gtest_filter=*ex1_3_37Test2*")
+# set(gtest_filter "--gtest_filter=*ex1_3_37Test2*")
 
 # Add gtest to be able to run ctest.
 add_test(
