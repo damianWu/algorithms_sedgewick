@@ -14,10 +14,10 @@
 #include <vector>
 
 #include "ch1/ch1.hpp"
-#include "gtest/gtest.h"
 
 namespace ch1
 {
+using size_t = std::size_t;
 namespace cyclic_buffer
 {
 
@@ -750,12 +750,54 @@ TEST(QueueTest, removeWithSizeOne)
   ASSERT_EQ(expectedResult, queue.remove(0));
 }
 
-// [x] No elements
-// [ ] Single element
-// [ ] Two elements
-// [x] Many elements
-// TODO(damianWu) Extend test with checking if changing element of queue doesn't change element in copyQueue
-// TODO(damianWu) Verify if m_left, m_right have correct values
+TEST(QueueImplCopyConstructorModifyElementsTest,
+     modificationOfCopiedElementShouldNotModifyOriginalElements)
+{
+  constexpr size_t expectedSize{4};
+  const std::string newItem1{"item11"};
+  const std::string newItem2{"item22"};
+  const std::string newItem3{"item33"};
+  const std::string newItem4{"item44"};
+
+  const std::vector<std::string> items{"item1", "item2", "item3", "item4"};
+  QueueImpl<std::string> queue;
+  for (size_t i{}; i < items.size(); ++i)
+  {
+    queue.enqueue(items[i]);
+  }
+
+  QueueImpl<std::string> queueCopy{queue};
+  auto queueIt{queue.begin()};
+
+  queueIt->item = newItem1;
+  (queueIt + 1)->item = newItem2;
+  (queueIt + 2)->item = newItem3;
+  (queueIt + 3)->item = newItem4;
+
+  ASSERT_EQ(expectedSize, queue.size());
+  ASSERT_EQ(expectedSize, queueCopy.size());
+
+  ASSERT_EQ(queueIt->item, newItem1);
+  ASSERT_EQ((queueIt + 1)->item, newItem2);
+  ASSERT_EQ((queueIt + 2)->item, newItem3);
+  ASSERT_EQ((queueIt + 3)->item, newItem4);
+
+  auto queueCopyIt{queueCopy.begin()};
+  ASSERT_EQ(queueCopyIt->item, items[0]);
+  ASSERT_EQ((queueCopyIt + 1)->item, items[1]);
+  ASSERT_EQ((queueCopyIt + 2)->item, items[2]);
+  ASSERT_EQ((queueCopyIt + 3)->item, items[3]);
+
+  for (size_t i{}; i < queue.size(); ++i)
+  {
+    if (queueIt->item == queueCopyIt->item)
+    {
+      FAIL() << "Every item should not be equal. queueIt->item: " << queueIt->item
+             << ", queueCopyIt->item: " << queueCopyIt->item;
+    }
+  }
+}
+
 struct QueueImplCopyConstructorTest : testing::TestWithParam<std::vector<std::string>>
 {
 };
@@ -783,6 +825,8 @@ TEST_P(QueueImplCopyConstructorTest, copyConstructor)
       FAIL() << "Every item should be equal. queueIt->item: " << queueIt->item
              << ", queueCopyIt->item: " << queueCopyIt->item;
     }
+    ++queueIt;
+    ++queueCopyIt;
   }
 }
 

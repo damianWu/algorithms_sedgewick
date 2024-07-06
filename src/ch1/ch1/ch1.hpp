@@ -69,7 +69,7 @@ struct Iterator
   using pointer = NodeType*;
   using reference = NodeType&;
 
-  explicit Iterator(NodeType* ptr) : m_ptr(ptr) {}
+  explicit Iterator(pointer ptr) : m_ptr(ptr) {}
 
   reference operator*() const { return *m_ptr; }
   pointer operator->() { return m_ptr; }
@@ -89,13 +89,14 @@ struct Iterator
     return tmp;
   }
 
-  Iterator& operator+(size_t noOfSteps)
+  Iterator operator+(size_t noOfSteps)
   {
+    pointer ptrCopy{m_ptr};
     for (uint16_t i{}; i < noOfSteps; ++i)
     {
-      ++*this;
+      ptrCopy = ptrCopy->next;
     }
-    return *this;
+    return Iterator{ptrCopy};
   }
 
   friend bool operator==(const Iterator& a, const Iterator& b) { return a.m_ptr == b.m_ptr; }
@@ -134,7 +135,7 @@ private:
   const std::size_t m_capacity{};
   T* m_data = new T[m_capacity];
 
-  bool m_isFull{false};  // TODO(damianWu) to delete?
+  bool m_isFull{false};
   bool m_isEmpty{true};
 
   int64_t m_enqueueIndex{};
