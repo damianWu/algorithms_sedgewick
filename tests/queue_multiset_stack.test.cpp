@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "ch1/ch1.hpp"
+#include "gtest/gtest.h"
 
 namespace ch1
 {
@@ -47,7 +48,6 @@ INSTANTIATE_TEST_SUITE_P(NewStackElementsTest, RingBufferEnqueueTest,
                                          std::make_tuple(2, 2, false, false),
                                          std::make_tuple(6, 6, true, false),
                                          std::make_tuple(8, 6, true, false)));
-
 
 TEST(RingBufferDequeueTest, shouldHaveValidFullAndEmptyStateAfterDequeue)
 {
@@ -1046,18 +1046,18 @@ TEST_F(DoubleLinkedListStackTest, iterateThroughStack)
 namespace homework
 {
 
-class Ex1_3_5Test : public ::testing::TestWithParam<std::pair<std::string, bool>>
+class Ex1_3_5_Test : public ::testing::TestWithParam<std::pair<std::string, bool>>
 {
 };
 
-TEST_P(Ex1_3_5Test, parenthesisTest)
+TEST_P(Ex1_3_5_Test, parenthesisTest)
 {
   const auto& [input, expectedResult]{GetParam()};
   const auto result{ex1_3_5(input)};
   ASSERT_EQ(expectedResult, result);
 }
 
-INSTANTIATE_TEST_SUITE_P(DISABLED_Ex1_3_5Test, Ex1_3_5Test,
+INSTANTIATE_TEST_SUITE_P(DISABLED_Ex1_3_5_Test, Ex1_3_5_Test,
                          testing::Values(std::make_pair("[()]{}{[()()]()}", true),
                                          std::make_pair("[(])", false), std::make_pair("[(", false),
                                          std::make_pair("", true), std::make_pair("[[]]", true),
@@ -1066,6 +1066,23 @@ INSTANTIATE_TEST_SUITE_P(DISABLED_Ex1_3_5Test, Ex1_3_5Test,
 
 TEST(ex1_3_37Test, ex1_3_37Test1) { ex1_3_37(7, 2); }
 TEST(ex1_3_37Test, ex1_3_37Test2) { ex1_3_37(7, 3); }
-}  // namespace homework
 
+class Ex_1_3_40Test : public testing::TestWithParam<std::pair<std::string, std::string>>
+{
+};
+
+TEST_P(Ex_1_3_40Test, ex_test)
+{
+  const auto& [input, expectedOutput]{GetParam()};
+
+  const auto result{ex1_3_40(input)};
+
+  ASSERT_EQ(expectedOutput, result);
+}
+
+INSTANTIATE_TEST_SUITE_P(Ex_1_3_40Testz, Ex_1_3_40Test,
+                         testing::Values(std::make_pair("abcda", "bcda"), std::make_pair("aaaa", "a"),
+                                         std::make_pair("", "")));
+
+}  // namespace homework
 }  // namespace ch1

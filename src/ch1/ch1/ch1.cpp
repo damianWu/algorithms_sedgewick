@@ -2,7 +2,9 @@
 
 #include "ch1/ch1.hpp"
 
+#include <algorithm>
 #include <cstdint>
+#include <iterator>
 #include <string>
 
 namespace ch1
@@ -68,23 +70,26 @@ void ex1_3_37(int32_t n, int32_t m)
   fmt::print("{}\n", re.value_or(-1));
 }
 
-void ex1_3_40()
+// Move to front
+std::string ex1_3_40(const std::string& input)
 {
-  std::string input{"abcda"};
-  std::string expectedOutput{"abcda"};
-
   double_linked_list::DoubleLinkedList<char> list;
 
   for (const auto c : input)
   {
     if (list.find(c) != std::nullopt)
     {
-      // TODO(damianWu) Finish me
-      // list.remove(c);
-      //       return;
+      list.remove(c);
+      list.pushRight(c);
+      continue;
     }
     list.pushRight(c);
   }
+
+  std::string output;
+  std::transform(std::begin(list), std::end(list), std::back_inserter(output),
+                 [](const auto& node) { return node.item; });
+  return output;
 }
 }  // namespace homework
 }  // namespace ch1

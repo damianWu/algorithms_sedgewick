@@ -6,7 +6,6 @@
 #include <fmt/core.h>
 
 #include <algorithm>
-#include <array>
 #include <cassert>
 #include <cmath>
 #include <cstddef>
@@ -16,6 +15,7 @@
 #include <memory>
 #include <optional>
 #include <random>
+#include <string>
 #include <utility>
 
 namespace ch1
@@ -153,7 +153,6 @@ T* RingBuffer<T>::end()
   return m_data + m_capacity;
 }
 
-
 template <typename T>
 RingBuffer<T>::~RingBuffer()
 {
@@ -171,7 +170,7 @@ inline size_t RingBuffer<T>::size() const
     return m_capacity + distance;
   }
 
-  if(m_isFull)
+  if (m_isFull)
   {
     return m_capacity;
   }
@@ -280,7 +279,7 @@ private:
 template <typename T>
 bool DoubleLinkedList<T>::remove(const T& item)
 {
-  auto nodeOpt{findNode(item)};
+  auto nodeOpt{find(item)};
   if (!nodeOpt.has_value())
   {
     return false;
@@ -327,7 +326,7 @@ std::optional<DoubleNode<T>*> DoubleLinkedList<T>::find(const T& item)
 template <typename T>
 bool DoubleLinkedList<T>::putAfter(T item, T newItem)
 {
-  const auto nodeOpt{findNode(item)};
+  const auto nodeOpt{find(item)};
   if (!nodeOpt.has_value())
   {
     return false;
@@ -353,7 +352,7 @@ bool DoubleLinkedList<T>::putAfter(T item, T newItem)
 template <typename T>
 bool DoubleLinkedList<T>::putBefore(T item, T newItem)
 {
-  auto nodeOpt{findNode(item)};
+  auto nodeOpt{find(item)};
   if (!nodeOpt.has_value())
   {
     return false;
@@ -1027,7 +1026,7 @@ namespace homework
 {
 bool ex1_3_5(std::string_view input);
 void ex1_3_37(int32_t n, int32_t m);
-void ex1_3_40();
+std::string ex1_3_40(const std::string& input);
 }  // namespace homework
 }  // namespace ch1
 
