@@ -10,12 +10,73 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <vector>
 
 #include "ch1/ch1.hpp"
 
 namespace ch1
 {
+namespace cyclic_buffer
+{
+
+struct RingBufferEnqueueTest : public ::testing::TestWithParam<std::tuple<size_t, size_t, bool, bool>>
+{
+  using RingBufferItemType = std::string;
+
+  const std::size_t cyclicBufferCapacity{6};
+  RingBuffer<RingBufferItemType> cyclicBuffer{cyclicBufferCapacity};
+};
+
+TEST_P(RingBufferEnqueueTest, shouldHaveValidFullAndEmptyStateAfterEnqueue)
+{
+  const auto [noOfNewItems, expectedSize, expectedIsFull, expectedIsEmpty]{GetParam()};
+
+  for (size_t i{}; i < noOfNewItems; ++i)
+  {
+    cyclicBuffer.enqueue("item" + std::to_string(i));
+  }
+
+  ASSERT_EQ(expectedIsFull, cyclicBuffer.isFull());
+  ASSERT_EQ(expectedIsEmpty, cyclicBuffer.isEmpty());
+  ASSERT_EQ(expectedSize, cyclicBuffer.size());
+}
+
+INSTANTIATE_TEST_SUITE_P(NewStackElementsTest, RingBufferEnqueueTest,
+                         testing::Values(std::make_tuple(0, 0, false, true),
+                                         std::make_tuple(2, 2, false, false),
+                                         std::make_tuple(6, 6, true, false),
+                                         std::make_tuple(8, 6, true, false)));
+
+
+TEST(RingBufferDequeueTest, shouldHaveValidFullAndEmptyStateAfterDequeue)
+{
+  using RingBufferItemType = std::string;
+
+  const std::size_t cyclicBufferCapacity{6};
+  RingBuffer<RingBufferItemType> cyclicBuffer{cyclicBufferCapacity};
+
+  cyclicBuffer.enqueue("item1");
+  cyclicBuffer.enqueue("item2");
+  cyclicBuffer.enqueue("item3");
+  cyclicBuffer.enqueue("item4");
+  cyclicBuffer.enqueue("item5");
+  cyclicBuffer.enqueue("item6");
+
+  ASSERT_EQ(cyclicBuffer.dequeue(), "item1");
+  ASSERT_EQ(cyclicBuffer.dequeue(), "item2");
+  ASSERT_EQ(cyclicBuffer.dequeue(), "item3");
+
+  cyclicBuffer.enqueue("item7");
+  cyclicBuffer.enqueue("item8");
+
+  ASSERT_EQ("item7", *std::begin(cyclicBuffer));
+  ASSERT_EQ("item8", *(std::begin(cyclicBuffer) + 1));
+  ASSERT_EQ(5u, cyclicBuffer.size());
+}
+
+}  // namespace cyclic_buffer
+
 namespace double_linked_list
 {
 struct DoubleLinkedListTest : public testing::Test

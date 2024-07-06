@@ -67,5 +67,24 @@ void ex1_3_37(int32_t n, int32_t m)
   const auto re{queue.remove(indexToDel)};
   fmt::print("{}\n", re.value_or(-1));
 }
+
+void ex1_3_40()
+{
+  std::string input{"abcda"};
+  std::string expectedOutput{"abcda"};
+
+  double_linked_list::DoubleLinkedList<char> list;
+
+  for (const auto c : input)
+  {
+    if (list.find(c) != std::nullopt)
+    {
+      // TODO(damianWu) Finish me
+      // list.remove(c);
+      //       return;
+    }
+    list.pushRight(c);
+  }
+}
 }  // namespace homework
 }  // namespace ch1

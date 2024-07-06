@@ -6,6 +6,7 @@
 #include <fmt/core.h>
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <cstddef>
@@ -108,14 +109,127 @@ private:
 
 namespace cyclic_buffer
 {
+using it::Iterator;
+using size_t = std::size_t;
+
+// Cyclic queue
+template <typename T>
 class RingBuffer
 {
 public:
   explicit RingBuffer(std::size_t capacity) : m_capacity(capacity) {}
+  ~RingBuffer();
+
+  [[nodiscard]] size_t size() const;
+  [[nodiscard]] bool isFull() const;
+  [[nodiscard]] bool isEmpty() const;
+
+  [[nodiscard]] std::optional<T> dequeue();
+  bool enqueue(T item);
+
+  T* begin();
+  T* end();
 
 private:
-  std::size_t m_capacity{};
+  const std::size_t m_capacity{};
+  T* m_data = new T[m_capacity];
+
+  bool m_isFull{false};  // TODO(damianWu) to delete?
+  bool m_isEmpty{true};
+
+  int64_t m_enqueueIndex{};
+  int64_t m_dequeueIndex{};
 };
+
+template <typename T>
+T* RingBuffer<T>::begin()
+{
+  return m_data;
+}
+
+template <typename T>
+T* RingBuffer<T>::end()
+{
+  return m_data + m_capacity;
+}
+
+
+template <typename T>
+RingBuffer<T>::~RingBuffer()
+{
+  delete[] m_data;
+}
+
+template <typename T>
+inline size_t RingBuffer<T>::size() const
+{
+  const int64_t distance{m_enqueueIndex - m_dequeueIndex};
+  fmt::print("m_enqueueIndex={}, m_dequeueIndex={}, distance={}\n", m_enqueueIndex, m_dequeueIndex,
+             distance);
+  if (distance < 0)
+  {
+    return m_capacity + distance;
+  }
+
+  if(m_isFull)
+  {
+    return m_capacity;
+  }
+
+  return distance;
+}
+
+template <typename T>
+bool RingBuffer<T>::enqueue(T item)
+{
+  fmt::print("Enqueue called\n");
+
+  if (m_isFull)
+  {
+    fmt::print("Queue is full\n");
+    return false;
+  }
+  m_isEmpty = false;
+
+  m_data[m_enqueueIndex] = std::move(item);
+  m_enqueueIndex = (m_enqueueIndex + 1) % m_capacity;
+  if (m_enqueueIndex == m_dequeueIndex)
+  {
+    m_isFull = true;
+  }
+  return true;
+}
+
+template <typename T>
+inline bool RingBuffer<T>::isFull() const
+{
+  return m_isFull;
+}
+
+template <typename T>
+inline bool RingBuffer<T>::isEmpty() const
+{
+  return m_isEmpty;
+}
+
+template <typename T>
+std::optional<T> RingBuffer<T>::dequeue()
+{
+  fmt::print("Dequeue called\n");
+  m_isFull = false;
+  if (!m_isEmpty)
+  {
+    const auto nextIndex{(m_dequeueIndex + 1) % static_cast<int64_t>(m_capacity)};
+    if (nextIndex == m_enqueueIndex)
+    {
+      m_isEmpty = true;
+    }
+    const auto returnIndex{m_dequeueIndex};
+    m_dequeueIndex = nextIndex;
+    return {m_data[returnIndex]};
+  }
+  return std::nullopt;
+}
 }  // namespace cyclic_buffer
 
 namespace double_linked_list
@@ -139,6 +253,7 @@ public:
   [[nodiscard]] constexpr bool isEmpty() const;
   [[nodiscard]] std::optional<T> front() const;
   [[nodiscard]] std::optional<T> back() const;
+  [[nodiscard]] std::optional<DoubleNode<T>*> find(const T& item);
 
   Iterator<DoubleNode<T>> begin() { return Iterator<DoubleNode<T>>{m_left}; }
   Iterator<DoubleNode<T>> end() { return Iterator<DoubleNode<T>>{nullptr}; }
@@ -155,7 +270,6 @@ public:
 
 private:
   [[nodiscard]] bool putFirst(const T& item);
-  [[nodiscard]] std::optional<DoubleNode<T>*> findNode(const T& item);
 
   DoubleNode<T>* m_left{};
   DoubleNode<T>* m_right{};
@@ -204,7 +318,7 @@ bool DoubleLinkedList<T>::remove(const T& item)
 }
 
 template <typename T>
-std::optional<DoubleNode<T>*> DoubleLinkedList<T>::findNode(const T& item)
+std::optional<DoubleNode<T>*> DoubleLinkedList<T>::find(const T& item)
 {
   const auto it{std::find_if(begin(), end(), [&item](auto node) { return node.item == item; })};
   return it == end() ? std::nullopt : std::make_optional(&*it);
@@ -913,6 +1027,7 @@ namespace homework
 {
 bool ex1_3_5(std::string_view input);
 void ex1_3_37(int32_t n, int32_t m);
+void ex1_3_40();
 }  // namespace homework
 }  // namespace ch1
 
