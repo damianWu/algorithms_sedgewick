@@ -750,6 +750,47 @@ TEST(QueueTest, removeWithSizeOne)
   ASSERT_EQ(expectedResult, queue.remove(0));
 }
 
+// [x] No elements
+// [ ] Single element
+// [ ] Two elements
+// [x] Many elements
+// TODO(damianWu) Extend test with checking if changing element of queue doesn't change element in copyQueue
+// TODO(damianWu) Verify if m_left, m_right have correct values
+struct QueueImplCopyConstructorTest : testing::TestWithParam<std::vector<std::string>>
+{
+};
+
+TEST_P(QueueImplCopyConstructorTest, copyConstructor)
+{
+  auto items{GetParam()};
+  QueueImpl<std::string> queue;
+  for (size_t i{}; i < items.size(); ++i)
+  {
+    queue.enqueue(items[i]);
+  }
+
+  QueueImpl<std::string> queueCopy{queue};
+
+  auto queueIt{queue.begin()};
+  auto queueCopyIt{queueCopy.begin()};
+
+  ASSERT_EQ(queue.size(), queueCopy.size());
+
+  for (size_t i{}; i < queue.size(); ++i)
+  {
+    if (queueIt->item != queueCopyIt->item)
+    {
+      FAIL() << "Every item should be equal. queueIt->item: " << queueIt->item
+             << ", queueCopyIt->item: " << queueCopyIt->item;
+    }
+  }
+}
+
+INSTANTIATE_TEST_SUITE_P(QueueImplCopyConstructorTest, QueueImplCopyConstructorTest,
+                         testing::Values(std::vector<std::string>{}, std::vector<std::string>{"item1"},
+                                         std::vector<std::string>{"item1", "item2"},
+                                         std::vector<std::string>{"item1", "item2", "item3", "item4"}));
+
 TEST(RandomQueueTest, shouldReturnRandomElement)
 {
   const std::vector<std::string> items{"item1", "item2", "item3", "item4"};

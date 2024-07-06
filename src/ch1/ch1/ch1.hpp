@@ -547,7 +547,7 @@ struct Queue
 {
   Queue() = default;
   virtual ~Queue() = default;
-  Queue(const Queue&) = delete;
+  Queue(const Queue&) = default;
   Queue(Queue&&) = delete;
   Queue& operator=(Queue&&) = delete;
   Queue& operator=(const Queue&) = delete;
@@ -567,6 +567,7 @@ protected:
 };
 
 // Queue of type FIFO
+// Implementation is based on LinkedList idea
 template <typename Item>
 class QueueImpl : public Queue<Item>
 {
@@ -574,6 +575,7 @@ class QueueImpl : public Queue<Item>
 
 public:
   QueueImpl() = default;
+  QueueImpl(const QueueImpl&);
   ~QueueImpl() override;
 
   void enqueue(Item item) override;
@@ -588,6 +590,8 @@ public:
   void clear();
 
 private:
+  void copyNode(SingleNode<Item>* prevLhsNode, SingleNode<Item>* currentRhsNode);
+
   SingleNode<Item>* m_left{};
   SingleNode<Item>* m_right{};
 };
@@ -602,6 +606,35 @@ template <typename Item>
 Iterator<SingleNode<Item>> QueueImpl<Item>::end()
 {
   return Iterator<SingleNode<Item>>(nullptr);
+}
+
+template <typename Item>
+void QueueImpl<Item>::copyNode(SingleNode<Item>* prevLhsNode, SingleNode<Item>* currentRhsNode)
+{
+  if (currentRhsNode == nullptr)
+  {
+    m_right = prevLhsNode;
+    return;
+  }
+
+  auto* newNode{new SingleNode<Item>{currentRhsNode->item}};
+  prevLhsNode->next = newNode;
+  copyNode(newNode, currentRhsNode->next);
+}
+
+template <typename Item>
+QueueImpl<Item>::QueueImpl(const QueueImpl<Item>& rhs)
+{
+  fmt::print("QueueImpl<Item>::QueueImpl(const QueueImpl<Item>& rhs) called\n");
+  m_size = rhs.m_size;
+
+  if (isEmpty())
+  {
+    return;
+  }
+
+  m_left = new SingleNode<Item>{rhs.m_left->item, rhs.m_left->next};
+  copyNode(m_left, rhs.m_left->next);
 }
 
 template <typename Item>
