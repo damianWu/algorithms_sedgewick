@@ -1165,7 +1165,7 @@ TEST_P(Ex_1_3_40Test, ex_test)
   ASSERT_EQ(expectedOutput, result);
 }
 
-INSTANTIATE_TEST_SUITE_P(Ex_1_3_40Testz, Ex_1_3_40Test,
+INSTANTIATE_TEST_SUITE_P(Ex_1_3_40Test, Ex_1_3_40Test,
                          testing::Values(std::make_pair("abcda", "bcda"), std::make_pair("aaaa", "a"),
                                          std::make_pair("", "")));
 

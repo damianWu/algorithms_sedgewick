@@ -2,7 +2,6 @@
 #ifndef SRC_CH1_CH1_CH1_HPP_
 #define SRC_CH1_CH1_CH1_HPP_
 
-#include <bits/chrono.h>
 #include <fmt/core.h>
 
 #include <algorithm>
@@ -164,8 +163,6 @@ template <typename T>
 inline size_t RingBuffer<T>::size() const
 {
   const int64_t distance{m_enqueueIndex - m_dequeueIndex};
-  fmt::print("m_enqueueIndex={}, m_dequeueIndex={}, distance={}\n", m_enqueueIndex, m_dequeueIndex,
-             distance);
   if (distance < 0)
   {
     return m_capacity + distance;
