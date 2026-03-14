@@ -22,7 +22,7 @@ namespace ch1
 namespace binary_search
 {
 template <typename T>
-bool binarySearch(const std::span<T> data, const T& element)
+[[nodiscard]] bool binarySearch(const std::span<T> data, const T& element)
 {
   if (data.size() == 0)
   {
@@ -47,7 +47,6 @@ bool binarySearch(const std::span<T> data, const T& element)
     }
     else
     {
-      fmt::println("found={} at index={}", data[mid], mid);
       return true;
     }
   }

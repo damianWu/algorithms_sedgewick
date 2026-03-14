@@ -25,7 +25,7 @@ TEST(BinarySearchTest, initialSortTest)
   std::vector<int> unsortedInput{5, 8, 11, 0, 32, 100, -102};
   const std::vector<int> expected{-102, 0, 5, 8, 11, 32, 100};
 
-  binarySearch<int>(unsortedInput, 2);
+  [[maybe_unused]] auto r{binarySearch<int>(unsortedInput, 2)};
 
   ASSERT_EQ(unsortedInput.size(), expected.size());
   ASSERT_EQ(unsortedInput, expected);
@@ -35,12 +35,57 @@ TEST(BinarySearchTest, binarySearchTest)
 {
   std::vector<int> input{};
   constexpr int target{1};
+  constexpr bool expected{false};
+
+  const bool actual{binarySearch<int>(input, target)};
+
+  ASSERT_EQ(actual, expected);
+}
+
+TEST(BinarySearchTest, binarySearchTest1)
+{
+  std::vector<int> input{5, 8, 11, 0, 32, 10, -12};
+  constexpr int target{999};
+  constexpr bool expected{false};
+
+  const bool acutal{binarySearch<int>(input, target)};
+
+  ASSERT_EQ(acutal, expected);
+}
+
+TEST(BinarySearchTest, binarySearchTest2)
+{
+  std::vector<int> input{1, 2};
+  constexpr int target{2};
   constexpr bool expected{true};
 
-  const bool result{binarySearch<int>(input, target)};
+  const bool actual{binarySearch<int>(input, target)};
 
-  ASSERT_EQ(result, expected);
+  ASSERT_EQ(actual, expected);
 }
+
+TEST(BinarySearchTest, binarySearchTest3)
+{
+  std::vector<int> input{1, 2};
+  constexpr int target{1};
+  constexpr bool expected{true};
+
+  const bool actual{binarySearch<int>(input, target)};
+
+  ASSERT_EQ(actual, expected);
+}
+
+TEST(BinarySearchTest, binarySearchTest4)
+{
+  std::vector<int> input{4, 5, 3, 1, 2, 0};
+  constexpr int target{1};
+  constexpr bool expected{true};
+
+  const bool actual{binarySearch<int>(input, target)};
+
+  ASSERT_EQ(actual, expected);
+}
+
 }  // namespace binary_search
 
 namespace cyclic_buffer
