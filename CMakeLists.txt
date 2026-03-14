@@ -1,6 +1,12 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 4.1.2)
 
 project(algorithms_sedgewick)
+
+# Set isysroot (MacOS)
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    # The path is result of "xcrun --show-sdk-path" command
+    set(CMAKE_OSX_SYSROOT "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk")
+endif()
 
 
 # ----------------------
@@ -18,19 +24,21 @@ set(EXCLUDED "-Wno-sign-conversion")
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(SANITIZER "-fsanitize=undefined,leak,address -fsanitize-undefined-trap-on-error")
+# elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+#   set(SANITIZER "-fsanitize=address,undefined")
 endif()
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  set(CLANG_FLAGS "-Wcovered-switch-default -Wgnu -Wmicrosoft -Wmost -ferror-limit=0")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+  set(CLANG_FLAGS "-Wcovered-switch-default -Wgnu -Wmicrosoft -Wmost ${ERROR_LIMIT}")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set(GCC_FLAGS "-fmodules-ts")
 endif()
-set(EXTRA_COMPILER_FLAGS "-Wall -Wextra -Werror -Wpedantic -Wconversion -Wunreachable-code -Wcast-align -Wshadow -Wmissing-noreturn -Wold-style-cast -Wpointer-arith -Wcast-qual ${CLANG_FLAGS} ${GCC_FLAGS} ${EXCLUDED} ${ERROR_LIMIT}")
+set(EXTRA_COMPILER_FLAGS "-Wall -Wextra -Werror -Wpedantic -Wconversion -Wunreachable-code -Wcast-align -Wshadow -Wmissing-noreturn -Wold-style-cast -Wpointer-arith -Wcast-qual ${CLANG_FLAGS} ${GCC_FLAGS} ${EXCLUDED}")
 
 # ----------------------
 # Debugging
 # ----------------------
-set(DEBUG_MODE TRUE)
+set(DEBUG_MODE FALSE)
 
 # ----------------------
 # Build type
@@ -42,7 +50,10 @@ elseif(NOT CMAKE_BUILD_TYPE)
 endif ()
 
 if(${DEBUG_MODE})
-	set(USER_DEBUG_FLAGS "-gdwarf-4")
+  if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    set(USER_DEBUG_FLAGS "-gdwarf-4") # Linux only
+  endif()
+
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CPP_COMPILER_STANDARD} ${EXTRA_COMPILER_FLAGS} ${COMPILATION_DATABASE} ${SANITIZER}")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g ${USER_DEBUG_FLAGS}")
   message(WARNING "Debug mode is on!")
@@ -50,6 +61,7 @@ else()
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CPP_COMPILER_STANDARD} ${EXTRA_COMPILER_FLAGS} ${COMPILATION_DATABASE} ${SANITIZER}")
 endif()
+
 
 # Generate 'compile_commands.json' file required for 'clangd' and familiar tools.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

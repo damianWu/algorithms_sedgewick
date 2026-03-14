@@ -1,10 +1,11 @@
 # Set TARGET(binary file) name for convenience
-set(queue_multiset_stack_test ${PROJECT_NAME}_queue_multiset_stack_test)
+set(ch1_test ${PROJECT_NAME}_ch1_test)
 
 # Test files
 set(
         TEST_FILES
-        queue_multiset_stack.test.cpp
+        main.test.cpp
+        ch1.test.cpp
 )
 
 # (Names of) Tested libraries
@@ -15,26 +16,27 @@ set(
 
 # Executable that runs the tests.
 add_executable(
-        ${queue_multiset_stack_test}             # Executable tests file name
+        ${ch1_test}             # Executable tests file name
         main.test.cpp
         ${TEST_FILES}
 )
 
 # Link the executable to needed libraries.
 target_link_libraries(
-        ${queue_multiset_stack_test}
+        ${ch1_test}
         ${TESTED_LIBRARIES}     # Library we are testing
         GTest::gtest_main
         gtest::gtest        # GTest libraries
 )
 
 # set(gtest_filter "--gtest_filter=*ex1_3_37Test2*")
+set(gtest_filter "--gtest_filter=*binarySearchTest*")
 
 # Add gtest to be able to run ctest.
 add_test(
         NAME queueMultiSetStack            # Test name
-        COMMAND ${queue_multiset_stack_test} --gtest_color=1 ${gtest_filter}   # Executable tests file name
+        COMMAND ${ch1_test} --gtest_color=1 ${gtest_filter}   # Executable tests file name
 )
 
 # include(GoogleTest)
-# gtest_discover_tests(${queue_multiset_stack_test})
+# gtest_discover_tests(${ch1_test})

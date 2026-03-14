@@ -1,5 +1,7 @@
 // Copyright [2024] <@damianWu>
 
+#include "ch1/ch1.hpp"
+
 #include <gtest/gtest.h>
 
 #include <algorithm>
@@ -11,13 +13,36 @@
 #include <string>
 #include <string_view>
 #include <tuple>
+#include <utility>
 #include <vector>
-
-#include "ch1/ch1.hpp"
 
 namespace ch1
 {
-using size_t = std::size_t;
+namespace binary_search
+{
+TEST(BinarySearchTest, initialSortTest)
+{
+  std::vector<int> unsortedInput{5, 8, 11, 0, 32, 100, -102};
+  const std::vector<int> expected{-102, 0, 5, 8, 11, 32, 100};
+
+  binarySearch<int>(unsortedInput, 2);
+
+  ASSERT_EQ(unsortedInput.size(), expected.size());
+  ASSERT_EQ(unsortedInput, expected);
+}
+
+TEST(BinarySearchTest, binarySearchTest)
+{
+  std::vector<int> input{};
+  constexpr int target{1};
+  constexpr bool expected{true};
+
+  const bool result{binarySearch<int>(input, target)};
+
+  ASSERT_EQ(result, expected);
+}
+}  // namespace binary_search
+
 namespace cyclic_buffer
 {
 

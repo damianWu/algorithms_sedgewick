@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
@@ -14,12 +13,47 @@
 #include <memory>
 #include <optional>
 #include <random>
+#include <span>
 #include <string>
 #include <utility>
 
 namespace ch1
 {
-using size_t = std::size_t;
+namespace binary_search
+{
+template <typename T>
+bool binarySearch(const std::span<T> data, const T& element)
+{
+  if (data.size() == 0)
+  {
+    return false;
+  }
+
+  std::ranges::sort(data);
+
+  std::size_t leftIndex{};
+  std::size_t rightIndex{data.size() - 1};
+
+  while (leftIndex <= rightIndex)
+  {
+    const std::size_t mid{leftIndex + (rightIndex - leftIndex)};
+    if (data[mid] < element)
+    {
+      leftIndex = mid + 1;
+    }
+    else if (data[mid] > element)
+    {
+      rightIndex = mid - 1;
+    }
+    else
+    {
+      fmt::println("found={} at index={}", data[mid], mid);
+      return true;
+    }
+  }
+  return false;
+}
+}  // namespace binary_search
 
 namespace it
 {
@@ -1046,6 +1080,7 @@ template <typename Item>
 {
   return m_size == 0;
 }
+
 template <typename Item>
 [[nodiscard]] inline std::size_t Stack<Item>::size() const
 {
